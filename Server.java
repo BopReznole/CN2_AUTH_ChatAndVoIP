@@ -7,8 +7,8 @@ import java.io.IOException;
 
 public class Server {
 	
-	private DatagramSocket datagramSocket; /* set socket datagramSocket */
-	private byte[] buffer = new byte[1024]; /* set buffer to store messages, size = 1024 bytes */
+	private DatagramSocket datagramSocket; /* create socket datagramSocket */
+	private byte[] buffer = new byte[1024]; /* create buffer to store messages, size = 1024 bytes */
 	
 	public Server(DatagramSocket datagramSocket) { /* constructor Server, initialize datagramSocket */
 		this.datagramSocket = datagramSocket;
