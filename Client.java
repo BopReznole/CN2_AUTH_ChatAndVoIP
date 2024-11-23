@@ -11,7 +11,7 @@ public class Client {
 
 	private DatagramSocket datagramSocket; /* set socket datagramSocket */
 	private InetAddress inetAddress; /* set IP address inetAddress of server */
-	private byte[] buffer;  /* store messages buffer, size = 1024 bytes */
+	private byte[] buffer;  /* set buffer to store messages, size = 1024 bytes */
 	
 	public Client(DatagramSocket datagramSocket, InetAddress inetAddress) { /* constructor Client,
 	 initialize datagramSocket, inetAddress */
