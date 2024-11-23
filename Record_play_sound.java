@@ -17,7 +17,7 @@ public class Record_play_sound {
 		
 		try                
 		{
-		   AudioFormat audioFormat = new AudioFormat(16000, 8, 1, true, true); /* sampleRate=8000 samples/sec,
+		   AudioFormat audioFormat = new AudioFormat(8000, 8, 1, true, true); /* sampleRate=8000 samples/sec,
 		    sampleSize=8 bits,  1 channel, signed (true) PCM, bigEndian (true)*/
 		   
 		   DataLine.Info dataInfo = new DataLine.Info(TargetDataLine.class, audioFormat);
