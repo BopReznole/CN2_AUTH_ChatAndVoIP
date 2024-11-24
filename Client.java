@@ -19,7 +19,7 @@ public class Client {
 		this.inetAddress = inetAddress;
 	}
 	
-	public void sendThenReceive() { /* method, client sends message and receives one back */
+	public void sendThenReceive() { /* method, client sends message and receives it back */
 		
 		Scanner scanner = new Scanner(System.in); /* input from keyboard */
 		while (true) { /* client always running, sending and receiving packets */
