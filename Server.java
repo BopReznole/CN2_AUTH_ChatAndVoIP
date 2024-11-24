@@ -36,7 +36,7 @@ public class Server {
 	}
 
     public static void main(String[] args) throws SocketException {
-    	DatagramSocket datagramSocket = new DatagramSocket(1234); /* create datagramSocket, server 
+    	DatagramSocket datagramSocket = new DatagramSocket(1234); /* set datagramSocket, server 
     	communicating from application port 1234 */
     	Server server = new Server(datagramSocket); /* pass datagramSocket to constructor Server */
     	server.receiveThenSend(); /* call method receiveThenSend */
