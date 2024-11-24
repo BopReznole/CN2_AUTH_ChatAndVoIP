@@ -10,7 +10,7 @@ import java.net.UnknownHostException;
 public class Client {
 
 	private DatagramSocket datagramSocket; /* create socket datagramSocket */
-	private InetAddress inetAddress; /* set IP address inetAddress of server */
+	private InetAddress inetAddress; /* create IP address inetAddress, to set it as IP of server */
 	private byte[] buffer;  /* create buffer to store messages, size = 1024 bytes */
 	
 	public Client(DatagramSocket datagramSocket, InetAddress inetAddress) { /* constructor Client,
@@ -42,8 +42,8 @@ public class Client {
 	}
 	
 	public static void main(String[] args) throws SocketException, UnknownHostException  {
-    	DatagramSocket datagramSocket = new DatagramSocket(); /* create datagramSocket */
-    	InetAddress inetAddress = InetAddress.getByName("Localhost"); /* set to inetAddress the IP of Localhost */
+    	DatagramSocket datagramSocket = new DatagramSocket(); /* set datagramSocket */
+    	InetAddress inetAddress = InetAddress.getByName("Localhost"); /* set to inetAddress the IP of server Localhost */
     	Client client = new Client(datagramSocket, inetAddress); /* pass datagramSocket and inetAddress
     	 to constructor Client */
     	System.out.println("Send datagram packets to a server");
