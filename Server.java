@@ -14,7 +14,7 @@ public class Server {
 		this.datagramSocket = datagramSocket;
 	}
 	
-	public void receiveThenSend() { /* method, server receives message and sends one back */
+	public void receiveThenSend() { /* method, server receives message and sends it back */
 		while (true) { /* server always running, receiving and sending packets */
 			try {
 				DatagramPacket datagramPacket= new DatagramPacket(buffer, buffer.length); /* get 
