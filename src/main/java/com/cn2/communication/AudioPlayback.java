@@ -13,17 +13,15 @@ public class AudioPlayback {
     private final SourceDataLine sourceLine; /* declare sourceLine for playing audio */
     private final AudioFormat audioFormat; /* declare audio format */
     private final DataLine.Info dataInfo; /* declare info for the audio. */
-    private byte[] buffer = new byte[1024]; /* declare buffer to store stream in chunks of 1024 bytes */
     
 	public AudioPlayback() throws LineUnavailableException { /* constructor AudioPlay, initialize variables
 	    throws LineUnavailableException if audio line is unavailable */
 		
 		this.audioFormat = new AudioFormat(8000, 8, 1, true, false); /* audio format:sampleRate=8000 samples/sec,
-	    sampleSize=8 bits,  1 channel, signed (true) PCM, littleEndian (false) */
+	    sampleSize=16 bits,  1 channel, signed (true) PCM, littleEndian (false) */
 		this.dataInfo = new DataLine.Info(SourceDataLine.class, audioFormat); /* object dataInfo, contains information
 		on what type of audio format sourceLine must have */
 		this.sourceLine = (SourceDataLine) AudioSystem.getLine(dataInfo); /* get sourceLine */
-		
 	}
 	
 	public void open() throws LineUnavailableException { /* method open, throws LineUnavailableException if audioline is unavailable */
@@ -32,7 +30,7 @@ public class AudioPlayback {
         sourceLine.start(); /* speaker open, sourceLine starts playing audio from speaker */
 	}
 	
-	public void write(byte[] buffer) {/* method write */
+	public void write(byte[] buffer) {/* method write has as input a buffer */
 		
 		sourceLine.write(buffer, 0, buffer.length); /* write the producing data into buffer, offset=0 for real time usage */
 	}

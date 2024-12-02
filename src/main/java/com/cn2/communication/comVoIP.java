@@ -21,7 +21,7 @@ public class comVoIP {
     private byte[] buffer = new byte[1024]; /* declare buffer to store messages, size = 1024 bytes */
 
     public comVoIP(DatagramSocket datagramSocket, InetAddress remoteAddress) throws LineUnavailableException {
-    	/* conctructor comVoIP, initialize datagramSocket, localAddress, remoteAddress,  */
+    /* conctructor comVoIP, initialize datagramSocket, remoteAddress */
         
         this.playback = new AudioPlayback();
         this.record = new AudioRecord();
@@ -29,15 +29,20 @@ public class comVoIP {
         this.datagramSocket = datagramSocket;
     }
     
-    public void sendAudio() throws LineUnavailableException {
-    	Thread sendAudioThread = new Thread() { /* thread the sending audio process  */
+    public void sendThenReceive() throws LineUnavailableException { /* method, local sends audio first and then receives back */
+    	Thread sendThenReceiveThread = new Thread() { /* thread the sendThenReceive audio process  */
     		@Override public void run() {
-    			try {
+    			try { /* send */
     				record.open(); /* call method open from AudioRecord, open the targetLine-stream */
     				buffer = record.read(); /* buffer captures audio and returns byte stream */
     				datagramPacket = new DatagramPacket(buffer, buffer.length, remoteAddress, 1234); /* get all data from buffer,
     				create a datagramPacket, send to IP inetAddress and port of remote */
     				datagramSocket.send(datagramPacket); /* datagramPacket send */
+    				
+    				/* receive */
+    				playback.open(); /* call method open from AudioPlayback, open the sourceLine-stream */
+    				datagramSocket.receive(datagramPacket); /* wait until remote sends back audio and get that to buffer, blocking method */
+    				playback.write(buffer); /* call method write from AudioPlayback, play the audio */
     			}
     			catch (IOException | LineUnavailableException e) { /* in case of error */
     				e.printStackTrace();
@@ -46,20 +51,27 @@ public class comVoIP {
     			record.stop(); /* call method stop from AudioRecord, close targetLine-stream */
     		}
         };
-        sendAudioThread.start(); /* start thread */
+        sendThenReceiveThread.start(); /* start thread */
     }
     
-    public void receiveAudio() throws LineUnavailableException {
-    	Thread receiveAudioThread = new Thread() { /* thread the receiving audio process  */
+    public void receiveThenSend() throws LineUnavailableException { /* method, local receives audio first and then sends back */
+    	Thread receiveThenSendThread = new Thread() { /* thread the receiveThenSend audio process  */
     		@Override public void run() {
-    			try {
+    			try { /* receive */
     				playback.open(); /* call method open from AudioPlayback, open the sourceLine-stream */
     				datagramPacket = new DatagramPacket(buffer, buffer.length); /* get packet datagramPacket to buffer */
     				datagramSocket.receive(datagramPacket); /* datagramPacket received from datagramSocket, blocking method */
     				InetAddress remoteAddress = datagramPacket.getAddress(); /* get IP address remoteAddress */
     				int port = datagramPacket.getPort(); /* get port */
     		        playback.write(buffer); /* call method write from AudioPlayback, play the audio */
-    			}
+    		        
+    		        /* send */
+    		        record.open(); /* call method open from AudioRecord, open the targetLine-stream */
+    				buffer = record.read(); /* buffer captures audio and returns byte stream */
+    				datagramPacket = new DatagramPacket(buffer, buffer.length, remoteAddress, port); /* get all data from buffer,
+    				create a datagramPacket, send to IP inetAddress and port of remote */
+    				datagramSocket.send(datagramPacket); /* datagramPacket send */
+    		    }
     			catch (IOException | LineUnavailableException e) { /* in case of error */
     				e.printStackTrace();
     			}
@@ -67,8 +79,7 @@ public class comVoIP {
     	    	playback.stop();
     		}
     	};
-    	receiveAudioThread.start(); /* start thread */
-    	
+    	receiveThenSendThread.start(); /* start thread */
     }
     
 }

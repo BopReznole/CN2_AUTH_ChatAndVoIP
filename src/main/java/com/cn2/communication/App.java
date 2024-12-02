@@ -42,6 +42,7 @@ public class App extends Frame implements WindowListener, ActionListener {
 	static JButton callButton;				
 	
 	private static comVoIP comvoip; /* declare comVoIP object */
+
 	
 	/**
 	 * Construct the app's frame and initialize important parameters
@@ -109,14 +110,20 @@ public class App extends Frame implements WindowListener, ActionListener {
 		 * 2. 
 		 */
 		
-		do { /* blocking method, always receiving data */
+		do { /* local always waiting to receive data, infinite loop */
 			
-			DatagramSocket datagramSocket = new DatagramSocket(); /* define datagramSocket */
-			InetAddress remoteAddress = InetAddress.getByName("Localhost"); /* define to inetAddress the IP of remote */
-			comvoip = new comVoIP(datagramSocket, remoteAddress); /* pass variables to constructor comVoIP */
-			comvoip.receiveAudio(); /* call method receiveAudio from comVoIP, receive audio data */
+			try {
+				DatagramSocket datagramSocket = new DatagramSocket(); /* define datagramSocket */
+				InetAddress remoteAddress = InetAddress.getByName("Localhost"); /* define to inetAddress the IP of remote */
+				comvoip = new comVoIP(datagramSocket, remoteAddress);
+				comvoip.receiveThenSend(); /* call method receiveThenSend from comVoIP, receive then send audio data */
+			}
+			catch (IOException e) { /* in case of error */
+				e.printStackTrace();
+				break; /* break from loop */
+			}
 			
-		}while(true);
+		}while(true); /*  */
 	}
 	
 	/**
@@ -143,12 +150,9 @@ public class App extends Frame implements WindowListener, ActionListener {
 		else if (e.getSource() == callButton){ // The "Call" button was clicked 
 				
 			try {
-				DatagramSocket datagramSocket = new DatagramSocket(); /* define datagramSocket */
-				InetAddress remoteAddress = InetAddress.getByName("Localhost"); /* define to inetAddress the IP of remote */
-				comvoip = new comVoIP(datagramSocket, remoteAddress); /* pass variables to constructor comVoIP */
-				comvoip.sendAudio(); /* call method sendAudio from comVoIP, receive audio data */
+				comvoip.sendThenReceive(); /* call method sendThenReceive from comVoIP, send then receive audio data */
 			}
-			catch (LineUnavailableException | UnknownHostException | SocketException e1) { /* in case of error */
+			catch (LineUnavailableException e1) { /* in case of error */
 				e1.printStackTrace();
 			}
 			

@@ -12,20 +12,21 @@ public class AudioRecord {
 	private final TargetDataLine targetLine; /* declare targetLine for capturing audio */
     private final AudioFormat audioFormat; /* declare audio format */
     private final DataLine.Info dataInfo; /* declare info for the audio. */
-    private byte[] buffer = new byte[1024]; /* declare buffer to store stream in chunks of 1024 bytes */
+    private byte[] buffer; /* declare buffer to store stream in */
     
     public AudioRecord() throws LineUnavailableException { /* constructor AudioCapture, initialize variables
     throws LineUnavailableException if audio line is unavailable */
 
     	this.audioFormat = new AudioFormat(8000, 8, 1, true, false); /* audio format:sampleRate=8000 samples/sec,
-	    sampleSize=8 bits,  1 channel, signed (true) PCM, littleEndian (false) */
+	    sampleSize=16 bits,  1 channel, signed (true) PCM, littleEndian (false) */
         this.dataInfo = new DataLine.Info(TargetDataLine.class, audioFormat); /* object dataInfo, contains information
 		on what type of audio format targetLine must have */
 
         if (!AudioSystem.isLineSupported(dataInfo)) { /* audio not supported */
              System.out.println("Not supported");
         }
-
+        
+        this.buffer =  new byte[(int) this.audioFormat.getSampleRate()]; /* buffer size according to sampleRate */ 
         this.targetLine = (TargetDataLine) AudioSystem.getLine(dataInfo); /* get targetLine */
     }
 
