@@ -36,7 +36,7 @@ public class comVoIP {
     				record.open(); /* call method open from AudioRecord, open the targetLine-stream */
     				buffer = record.read(); /* buffer captures audio and returns byte stream */
     				datagramPacket = new DatagramPacket(buffer, buffer.length, remoteAddress, 1234); /* get all data from buffer,
-    				create a datagramPacket, send to IP inetAddress and port of the server */
+    				create a datagramPacket, send to IP inetAddress and port of remote */
     				datagramSocket.send(datagramPacket); /* datagramPacket send */
     			}
     			catch (IOException | LineUnavailableException e) { /* in case of error */
