@@ -2,7 +2,7 @@ Dumping resources we find:
 
 1. [JavaFX and Java Sockets - Client Server Messenger](https://www.youtube.com/watch?v=_1nqY-DKP9A)
 
-2. [Java UDP Client Server Messenger](https://www.youtube.com/watch?v=WSyTrdjKeqQ)
+2. [Java UDP Client Server Messenger](https://www.youtube.com/watch?v=yxIUYQDtWpc)
 
 3. [How to Record Audio Using Java (Simple)](https://www.youtube.com/watch?v=WSyTrdjKeqQ)
 
