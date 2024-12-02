@@ -26,12 +26,22 @@ public class AudioPlayback {
 		
 	}
 	
-	public void open() throws LineUnavailableException { /* method open, 
-        throws LineUnavailableException if audioline is unavailable */
-
+	public void open() throws LineUnavailableException { /* method open, throws LineUnavailableException if audioline is unavailable */
+		
         sourceLine.open(audioFormat); /* open sourceLine */
         sourceLine.start(); /* speaker open, sourceLine starts playing audio from speaker */
-        sourceLine.write(buffer, 0, buffer.length); /* write the producing data into buffer, offset=0 for real time usage */
-    }
+	}
+	
+	public void write(byte[] buffer) {/* method write */
+		
+		sourceLine.write(buffer, 0, buffer.length); /* write the producing data into buffer, offset=0 for real time usage */
+	}
+	
+	public void stop() { /* method stop */
+		
+		sourceLine.drain(); /* ensure all data is played */
+		sourceLine.stop(); /* stops the sourceLine but retains its resources */
+		sourceLine.close(); /* closes the sourceLine and releases resources*/ 
+	}
 	
 }

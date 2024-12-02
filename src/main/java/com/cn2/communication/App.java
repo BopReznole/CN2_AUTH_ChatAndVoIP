@@ -1,10 +1,21 @@
-package com.cn2.communication;
+package com.cn2.communication; /* file com/cn2/communication */
+
+import com.cn2.communication.comVoIP; /* import the class from its package-file */
 
 import java.io.*;
+
 import java.net.*;
 
 import javax.swing.JFrame;
+import javax.swing.JOptionPane;
 import javax.swing.JTextField;
+import javax.sound.sampled.AudioFileFormat;
+import javax.sound.sampled.AudioFormat;
+import javax.sound.sampled.AudioInputStream;
+import javax.sound.sampled.AudioSystem;
+import javax.sound.sampled.DataLine;
+import javax.sound.sampled.LineUnavailableException;
+import javax.sound.sampled.TargetDataLine;
 import javax.swing.JButton;
 import javax.swing.JTextArea;
 import javax.swing.JScrollPane;
@@ -30,7 +41,7 @@ public class App extends Frame implements WindowListener, ActionListener {
 	final static String newline="\n";		
 	static JButton callButton;				
 	
-	// TODO: Please define and initialize your variables here...
+	private static comVoIP comvoip; /* declare comVoIP object */
 	
 	/**
 	 * Construct the app's frame and initialize important parameters
@@ -83,8 +94,9 @@ public class App extends Frame implements WindowListener, ActionListener {
 	/**
 	 * The main method of the application. It continuously listens for
 	 * new messages.
+	 * @throws LineUnavailableException 
 	 */
-	public static void main(String[] args){
+	public static void main(String[] args) throws SocketException, UnknownHostException, LineUnavailableException {
 	
 		/*
 		 * 1. Create the app's window
@@ -96,8 +108,14 @@ public class App extends Frame implements WindowListener, ActionListener {
 		/*
 		 * 2. 
 		 */
-		do{		
-			// TODO: Your code goes here...
+		
+		do { /* blocking method, always receiving data */
+			
+			DatagramSocket datagramSocket = new DatagramSocket(); /* define datagramSocket */
+			InetAddress remoteAddress = InetAddress.getByName("Localhost"); /* define to inetAddress the IP of remote */
+			comvoip = new comVoIP(datagramSocket, remoteAddress); /* pass variables to constructor comVoIP */
+			comvoip.receiveAudio(); /* call method receiveAudio from comVoIP, receive audio data */
+			
 		}while(true);
 	}
 	
@@ -105,31 +123,36 @@ public class App extends Frame implements WindowListener, ActionListener {
 	 * The method that corresponds to the Action Listener. Whenever an action is performed
 	 * (i.e., one of the buttons is clicked) this method is executed. 
 	 */
+	
 	@Override
 	public void actionPerformed(ActionEvent e) {
 		
-	
-
-		/*
+	     /*
 		 * Check which button was clicked.
 		 */
-		if (e.getSource() == sendButton){
-			
-			// The "Send" button was clicked
-			
-			// TODO: Your code goes here...
 		
+		if (e.getSource() == sendButton){ // The "Send" button was clicked 
 			
-		}else if(e.getSource() == callButton){
-			
-			// The "Call" button was clicked
-			
-			// TODO: Your code goes here...
-			
+			String messageToSend = inputTextField.getText(); /* get string messageTosend from textField */
+			if(!messageToSend.isEmpty()) {/* if there is a messageTosend */
+				textArea.append("local: " + messageToSend); /* appear messageTosend to textArea */
+				textArea.append("\n");
+			}
+		}
+		
+		else if (e.getSource() == callButton){ // The "Call" button was clicked 
+				
+			try {
+				DatagramSocket datagramSocket = new DatagramSocket(); /* define datagramSocket */
+				InetAddress remoteAddress = InetAddress.getByName("Localhost"); /* define to inetAddress the IP of remote */
+				comvoip = new comVoIP(datagramSocket, remoteAddress); /* pass variables to constructor comVoIP */
+				comvoip.sendAudio(); /* call method sendAudio from comVoIP, receive audio data */
+			}
+			catch (LineUnavailableException | UnknownHostException | SocketException e1) { /* in case of error */
+				e1.printStackTrace();
+			}
 			
 		}
-			
-
 	}
 
 	/**

@@ -29,14 +29,24 @@ public class AudioRecord {
         this.targetLine = (TargetDataLine) AudioSystem.getLine(dataInfo); /* get targetLine */
     }
 
-    public byte[] open() throws LineUnavailableException { /* method open, 
+    public void open() throws LineUnavailableException { /* method open, 
         throws LineUnavailableException if audioline is unavailable */
-
-        targetLine.open(audioFormat); /* open targetLine */
-        targetLine.start(); /* microphone open, targetLine starts capturing data from microphone */
-        targetLine.read(buffer, 0, buffer.length); /* read the captured data into buffer, offset=0 for real time usage */
-        return buffer; /* return bytes of data from buffer */ 
+    	
+        this.targetLine.open(audioFormat); /* open targetLine */
+        this.targetLine.start(); /* microphone open, targetLine starts capturing data from microphone */
     }
+    
+    public byte[] read() {/* method read */
+    	
+    	targetLine.read(buffer, 0, buffer.length); /* read the captured data into buffer, offset=0 for real time usage */
+        return buffer; /* return bytes of data from buffer */ 
+	}
+	
+	public void stop() { /* method stop */
+		
+		targetLine.stop(); /* stops the targetLine but retains its resources */
+		targetLine.close(); /* closes the targetLine and releases resources*/ 
+	}
     
 }    
 
