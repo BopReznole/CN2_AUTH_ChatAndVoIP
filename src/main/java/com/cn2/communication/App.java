@@ -119,7 +119,7 @@ public class App extends Frame implements WindowListener, ActionListener {
 				InetAddress remoteAddress = InetAddress.getByName("192.168.1.4"); /* define to inetAddress the IP of remote */
 				comVoip = new ComVoIP(datagramSocket, remoteAddress); /* pass datagramSocket, remoteAddress to constructor ComVoIP */
 				comVoip.receiveThenSend(); /* call method receiveThenSend from ComVoIP, receive then send audio data */
-				comChat = new ComChat(datagramSocket, remoteAddress); /* pass datagramSocket, remoteAddress to constructor ComVoIP */
+				comChat = new ComChat(datagramSocket, remoteAddress); /* pass datagramSocket, remoteAddress to constructor ComChat */
 				comChat.receive(textArea); /* call method receive from ComChat, receive text data */
 			}
 			catch (IOException e) { /* in case of error */
