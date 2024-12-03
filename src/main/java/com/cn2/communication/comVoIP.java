@@ -29,20 +29,15 @@ public class comVoIP {
         this.datagramSocket = datagramSocket;
     }
     
-    public void sendThenReceive() throws LineUnavailableException { /* method, local sends audio first and then receives back */
-    	Thread sendThenReceiveThread = new Thread() { /* thread the sendThenReceive audio process  */
-    		@Override public void run() {
-    			try { /* send */
+    public void send() throws LineUnavailableException { /* method, local sends audio first and then receives back */
+    	Thread sendThread = new Thread() { /* thread the sendThenReceive audio process  */
+    		@Override public void run() { /* Override because child class run has same methods as parent class sendThenReceive */
+    			try { 
     				record.open(); /* call method open from AudioRecord, open the targetLine-stream */
     				buffer = record.read(); /* buffer captures audio and returns byte stream */
     				datagramPacket = new DatagramPacket(buffer, buffer.length, remoteAddress, 1234); /* get all data from buffer,
     				create a datagramPacket, send to IP inetAddress and port of remote */
     				datagramSocket.send(datagramPacket); /* datagramPacket send */
-    				
-    				/* receive */
-    				playback.open(); /* call method open from AudioPlayback, open the sourceLine-stream */
-    				datagramSocket.receive(datagramPacket); /* wait until remote sends back audio and get that to buffer, blocking method */
-    				playback.write(buffer); /* call method write from AudioPlayback, play the audio */
     			}
     			catch (IOException | LineUnavailableException e) { /* in case of error */
     				e.printStackTrace();
@@ -51,12 +46,12 @@ public class comVoIP {
     			record.stop(); /* call method stop from AudioRecord, close targetLine-stream */
     		}
         };
-        sendThenReceiveThread.start(); /* start thread */
+        sendThread.start(); /* start thread */
     }
     
     public void receiveThenSend() throws LineUnavailableException { /* method, local receives audio first and then sends back */
     	Thread receiveThenSendThread = new Thread() { /* thread the receiveThenSend audio process  */
-    		@Override public void run() {
+    		@Override public void run() { /* Override because child class run has same methods as parent class receiveThenSend */
     			try { /* receive */
     				playback.open(); /* call method open from AudioPlayback, open the sourceLine-stream */
     				datagramPacket = new DatagramPacket(buffer, buffer.length); /* get packet datagramPacket to buffer */

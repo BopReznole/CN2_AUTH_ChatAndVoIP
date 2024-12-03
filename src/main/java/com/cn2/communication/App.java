@@ -97,7 +97,7 @@ public class App extends Frame implements WindowListener, ActionListener {
 	 * new messages.
 	 * @throws LineUnavailableException 
 	 */
-	public static void main(String[] args) throws SocketException, UnknownHostException, LineUnavailableException {
+	public static void main(String[] args) throws LineUnavailableException, SocketException {
 	
 		/*
 		 * 1. Create the app's window
@@ -111,19 +111,17 @@ public class App extends Frame implements WindowListener, ActionListener {
 		 */
 		
 		do { /* local always waiting to receive data, infinite loop */
-			
 			try {
 				DatagramSocket datagramSocket = new DatagramSocket(); /* define datagramSocket */
 				InetAddress remoteAddress = InetAddress.getByName("Localhost"); /* define to inetAddress the IP of remote */
-				comvoip = new comVoIP(datagramSocket, remoteAddress);
+				comvoip = new comVoIP(datagramSocket, remoteAddress); /* pass datagramSocket, remoteAddress to constructor comVoIP */
 				comvoip.receiveThenSend(); /* call method receiveThenSend from comVoIP, receive then send audio data */
 			}
 			catch (IOException e) { /* in case of error */
 				e.printStackTrace();
 				break; /* break from loop */
 			}
-			
-		}while(true); /*  */
+		}while(true); 
 	}
 	
 	/**
@@ -140,17 +138,20 @@ public class App extends Frame implements WindowListener, ActionListener {
 		
 		if (e.getSource() == sendButton){ // The "Send" button was clicked 
 			
-			String messageToSend = inputTextField.getText(); /* get string messageTosend from textField */
+			String messageToSend = inputTextField.getText(); /* get string messageTosend from TextField inputTextField */
 			if(!messageToSend.isEmpty()) {/* if there is a messageTosend */
 				textArea.append("local: " + messageToSend); /* appear messageTosend to textArea */
 				textArea.append("\n");
+				inputTextField.setText(""); /* erase messageTosend from inputTextField */
 			}
 		}
 		
 		else if (e.getSource() == callButton){ // The "Call" button was clicked 
 				
 			try {
-				comvoip.sendThenReceive(); /* call method sendThenReceive from comVoIP, send then receive audio data */
+				comvoip.send(); /* call method send from comVoIP, send audio data and start audio communication */
+				textArea.append("Calling remote"); /* appear "Calling remote" to textArea */
+				textArea.append("\n");
 			}
 			catch (LineUnavailableException e1) { /* in case of error */
 				e1.printStackTrace();
