@@ -29,9 +29,9 @@ public class comVoIP {
         this.datagramSocket = datagramSocket;
     }
     
-    public void send() throws LineUnavailableException { /* method, local sends audio first and then receives back */
-    	Thread sendThread = new Thread() { /* thread the sendThenReceive audio process  */
-    		@Override public void run() { /* Override because child class run has same methods as parent class sendThenReceive */
+    public void send() throws LineUnavailableException { /* method, local sends audio to initialize communication */
+    	Thread sendThread = new Thread() { /* thread the send audio process  */
+    		@Override public void run() { /* Override because child class run has same methods as parent class send */
     			try { 
     				record.open(); /* call method open from AudioRecord, open the targetLine-stream */
     				buffer = record.read(); /* buffer captures audio and returns byte stream */
@@ -58,20 +58,20 @@ public class comVoIP {
     				datagramSocket.receive(datagramPacket); /* datagramPacket received from datagramSocket, blocking method */
     				InetAddress remoteAddress = datagramPacket.getAddress(); /* get IP address remoteAddress */
     				int port = datagramPacket.getPort(); /* get port */
-    		        playback.write(buffer); /* call method write from AudioPlayback, play the audio */
+    		                playback.write(buffer); /* call method write from AudioPlayback, play the audio */
     		        
-    		        /* send */
-    		        record.open(); /* call method open from AudioRecord, open the targetLine-stream */
+    		                /* send */
+    		                record.open(); /* call method open from AudioRecord, open the targetLine-stream */
     				buffer = record.read(); /* buffer captures audio and returns byte stream */
     				datagramPacket = new DatagramPacket(buffer, buffer.length, remoteAddress, port); /* get all data from buffer,
     				create a datagramPacket, send to IP inetAddress and port of remote */
     				datagramSocket.send(datagramPacket); /* datagramPacket send */
-    		    }
+    		        }
     			catch (IOException | LineUnavailableException e) { /* in case of error */
     				e.printStackTrace();
     			}
     	    	
-    	    	playback.stop();
+    	    	        playback.stop();
     		}
     	};
     	receiveThenSendThread.start(); /* start thread */
