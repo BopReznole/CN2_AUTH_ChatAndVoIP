@@ -11,7 +11,7 @@ import javax.swing.JTextArea;
 public class ComChat {
 	
 	 private InetAddress remoteAddress; /* declare IP address remoteAddress, to set it as IP of remote */
-	 /*private DatagramPacket datagramPacket; /* declare datagramPacket the datagramPacket sent or recieved */
+	 private DatagramPacket datagramPacket; /* declare datagramPacket the datagramPacket sent or recieved */
 	 private DatagramSocket datagramSocket; /* declare socket datagramSocket */
 	 private byte[] buffer = new byte[1024]; /* declare buffer to store messages, size = 1024 bytes */
 
