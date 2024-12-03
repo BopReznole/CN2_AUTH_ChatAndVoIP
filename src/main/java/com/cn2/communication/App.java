@@ -1,6 +1,8 @@
 package com.cn2.communication; /* file com/cn2/communication */
 
-import com.cn2.communication.comVoIP; /* import the class from its package-file */
+import com.cn2.communication.ComVoIP; /* import the class from its package-file */
+import com.cn2.communication.ComChat; /* import the class from its package-file */
+
 
 import java.io.*;
 
@@ -41,7 +43,8 @@ public class App extends Frame implements WindowListener, ActionListener {
 	final static String newline="\n";		
 	static JButton callButton;				
 	
-	private static comVoIP comvoip; /* declare comVoIP object */
+	private static ComVoIP comVoip; /* declare ComVoIP object for VoIP */
+	private static ComChat comChat; /* declare ComChat object for Chat */
 
 	
 	/**
@@ -114,8 +117,10 @@ public class App extends Frame implements WindowListener, ActionListener {
 			try {
 				DatagramSocket datagramSocket = new DatagramSocket(); /* define datagramSocket */
 				InetAddress remoteAddress = InetAddress.getByName("Localhost"); /* define to inetAddress the IP of remote */
-				comvoip = new comVoIP(datagramSocket, remoteAddress); /* pass datagramSocket, remoteAddress to constructor comVoIP */
-				comvoip.receiveThenSend(); /* call method receiveThenSend from comVoIP, receive then send audio data */
+				comVoip = new ComVoIP(datagramSocket, remoteAddress); /* pass datagramSocket, remoteAddress to constructor ComVoIP */
+				comVoip.receiveThenSend(); /* call method receiveThenSend from ComVoIP, receive then send audio data */
+				comChat = new ComChat(datagramSocket, remoteAddress); /* pass datagramSocket, remoteAddress to constructor ComVoIP */
+				comChat.receiveThenSend(textArea); /* call method receiveThenSend from ComChat, receive then send text data */
 			}
 			catch (IOException e) { /* in case of error */
 				e.printStackTrace();
@@ -138,20 +143,26 @@ public class App extends Frame implements WindowListener, ActionListener {
 		
 		if (e.getSource() == sendButton){ // The "Send" button was clicked 
 			
-			String messageToSend = inputTextField.getText(); /* get string messageTosend from TextField inputTextField */
-			if(!messageToSend.isEmpty()) {/* if there is a messageTosend */
-				textArea.append("local: " + messageToSend); /* appear messageTosend to textArea */
-				textArea.append("\n");
-				inputTextField.setText(""); /* erase messageTosend from inputTextField */
+			String messageToSend = inputTextField.getText(); /* get string messageToSend from TextField inputTextField */
+			if(!messageToSend.isEmpty()) {/* if there is a messageToSend */
+				try {
+					textArea.append("local: " + messageToSend); /* appear messageToSend to textArea */
+					textArea.append("\n"); /* change line */
+					inputTextField.setText(""); /* erase messageTosend from inputTextField */
+					comChat.send(messageToSend); /* call method send from ComChat, send text data and start communication */
+				}
+				catch (LineUnavailableException e1) { /* in case of error */
+					e1.printStackTrace();
+				}
 			}
 		}
 		
 		else if (e.getSource() == callButton){ // The "Call" button was clicked 
 				
 			try {
-				comvoip.send(); /* call method send from comVoIP, send audio data and start audio communication */
-				textArea.append("Calling remote"); /* appear "Calling remote" to textArea */
-				textArea.append("\n");
+				comVoip.send(); /* call method send from ComVoIP, send audio data and start audio communication */
+				textArea.append("Ongoing call"); /* appear "Ongoing call" to textArea */
+				textArea.append("\n"); /* change line */
 			}
 			catch (LineUnavailableException e1) { /* in case of error */
 				e1.printStackTrace();
