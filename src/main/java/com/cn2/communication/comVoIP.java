@@ -29,7 +29,7 @@ public class comVoIP {
         this.datagramSocket = datagramSocket;
     }
     
-    public void send() throws LineUnavailableException { /* method, local sends audio to initialize communication */
+    public void send() throws LineUnavailableException { /* method, local sends audio to start communication */
     	Thread sendThread = new Thread() { /* thread the send audio process  */
     		@Override public void run() { /* Override because child class run has same methods as parent class send */
     			try { 
