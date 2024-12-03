@@ -116,11 +116,20 @@ public class App extends Frame implements WindowListener, ActionListener {
 		do { /* local always waiting to receive data, infinite loop */
 			try {
 				DatagramSocket datagramSocket = new DatagramSocket(); /* define datagramSocket */
-				InetAddress remoteAddress = InetAddress.getByName("Localhost"); /* define to inetAddress the IP of remote */
+				InetAddress remoteAddress = InetAddress.getByName("192.168.1.4"); /* define to inetAddress the IP of remote */
 				comVoip = new ComVoIP(datagramSocket, remoteAddress); /* pass datagramSocket, remoteAddress to constructor ComVoIP */
 				comVoip.receiveThenSend(); /* call method receiveThenSend from ComVoIP, receive then send audio data */
+			}
+			catch (IOException e) { /* in case of error */
+				e.printStackTrace();
+				break; /* break from loop */
+			}
+			
+			try {
+				DatagramSocket datagramSocket = new DatagramSocket(); /* define datagramSocket */
+				InetAddress remoteAddress = InetAddress.getByName("192.168.1.4"); /* define to inetAddress the IP of remote */
 				comChat = new ComChat(datagramSocket, remoteAddress); /* pass datagramSocket, remoteAddress to constructor ComVoIP */
-				comChat.receiveThenSend(textArea); /* call method receiveThenSend from ComChat, receive then send text data */
+				comChat.receive(textArea); /* call method receive from ComChat, receive text data */
 			}
 			catch (IOException e) { /* in case of error */
 				e.printStackTrace();
