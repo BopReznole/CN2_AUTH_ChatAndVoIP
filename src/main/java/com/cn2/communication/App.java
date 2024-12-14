@@ -167,63 +167,15 @@ public class App extends Frame implements WindowListener, ActionListener {
 					ex.printStackTrace();
 				}
 				
-				comVoIP.startVoIP(); // call method startVoIP and start VoIP call
+				comVoIP.startVoIP(); // call method startVoIP from ComVoIP and start VoIP call
 				callButton.setText("End Call"); // change button to End Call
 			} 
 			else { // VoIP call not happening
-				comVoIP.stopVoIP(); // call method stopVoIP and stop VoIP call
+				comVoIP.stopVoIP(); // call method stopVoIP from ComVoIP and stop VoIP call
 				callButton.setText("Call"); // change button to Call
 			}
 		}
 	}
-
-//	private void startVoIP() { // method to start VoIP call 
-//		isCalling = true; // set isCalling to true, VoIP call happening
-//		try {
-//			record.open(); /* call method open from AudioRecord, open the targetLine-stream */
-//			playback.open(); // call method open from AudioPlayback, open the sourceLine-stream */
-//
-//			// Thread to capture and send audio
-//			new Thread(() -> {
-//				try {
-//					while (isCalling) {
-//						byte[] audioData = record.read(); // audioData captures audio and returns byte stream 
-//						DatagramPacket datagramPacket = new DatagramPacket(audioData, audioData.length, remoteAddress, 1243); 
-//						// get all data from buffer, create a datagramPacket, send to IP remoteAddress and port of remote 
-//						datagramSocket.send(datagramPacket); // datagramPacket send 
-//					}
-//				} 
-//				catch (Exception e) { // in case of error
-//					e.printStackTrace();
-//				}
-//			}).start(); // start Thread
-//
-//			// Thread to receive and play audio
-//			new Thread(() -> {
-//				try {
-//					byte[] buffer = new byte[1024]; // buffer, size=1024 bytes, captures audio and returns byte stream 
-//					while (isCalling) {
-//						DatagramPacket datagramPacket = new DatagramPacket(buffer, buffer.length); /* get packet datagramPacket to buffer */
-//						datagramSocket.receive(datagramPacket); /* datagramPacket received from datagramSocket, blocking method */
-//						playback.write(datagramPacket.getData()); /* call method write from AudioPlayback, play the audio */
-//					}
-//				} 
-//				catch (Exception e) { // in case of error
-//					e.printStackTrace();
-//				}
-//			}).start(); // start Thread
-//
-//		} 
-//		catch (Exception e) { // in case of error
-//			e.printStackTrace();
-//		}
-//	}
-//
-//	private void stopVoIP() { // method to stop VoIP call 
-//		isCalling = false; // set isCalling to false, VoIP call not happening
-//		record.stop();  // call method stop from AudioRecord, close targetLine-stream 
-//		playback.stop();  // call method stop from AudioPlayback, close sourceLine-stream 
-//	}
 
 	/**
 	 * These methods have to do with the GUI. You can use them if you wish to define
