@@ -36,8 +36,9 @@ public class App extends Frame implements WindowListener, ActionListener {
 	private ComChat comChat; // declare ComChat object for Chat 
 
 	// VoIP-related 
-	private AudioRecord record; // declare object for recording sound  
-	private AudioPlayback playback; // declare object for playing sound  
+//	private AudioRecord record; // declare object for recording sound  
+//	private AudioPlayback playback; // declare object for playing sound  
+	private ComVoIP comVoIP; // declare ComChat object for Chat 
 	private volatile boolean isCalling = false; // VoIP call not happening
 
 	/**
@@ -92,11 +93,12 @@ public class App extends Frame implements WindowListener, ActionListener {
 			// chat-related components
 			datagramSocket = new DatagramSocket(1234); // define datagramSocket and port=1234 
 			remoteAddress = InetAddress.getByName("localhost"); // define to inetAddress the IP of remote 
-			comChat = new ComChat(datagramSocket, remoteAddress); // 
+			comChat = new ComChat(datagramSocket, remoteAddress); // pass datagramSocket, remoteAddress to to constructor ComChat 
 
 			// VoIP-related components
-			record = new AudioRecord(); // initialize AudioRecord object
-			playback = new AudioPlayback(); // initialize AudioPlayback object
+//			record = new AudioRecord(); // initialize AudioRecord object
+//			playback = new AudioPlayback(); // initialize AudioPlayback object
+			comVoIP = new ComVoIP(datagramSocket, remoteAddress); // pass datagramSocket, remoteAddress to to constructor ComVoIP 
 		}
 		catch (Exception e) { // in case of error
 			e.printStackTrace();
@@ -165,63 +167,63 @@ public class App extends Frame implements WindowListener, ActionListener {
 					ex.printStackTrace();
 				}
 				
-				startVoIP(); // call method startVoIP and start VoIP call
+				comVoIP.startVoIP(); // call method startVoIP and start VoIP call
 				callButton.setText("End Call"); // change button to End Call
 			} 
 			else { // VoIP call not happening
-				stopVoIP(); // call method stopVoIP and stop VoIP call
+				comVoIP.stopVoIP(); // call method stopVoIP and stop VoIP call
 				callButton.setText("Call"); // change button to Call
 			}
 		}
 	}
 
-	private void startVoIP() { // method to start VoIP call 
-		isCalling = true; // set isCalling to true, VoIP call happening
-		try {
-			record.open(); /* call method open from AudioRecord, open the targetLine-stream */
-			playback.open(); // call method open from AudioPlayback, open the sourceLine-stream */
-
-			// Thread to capture and send audio
-			new Thread(() -> {
-				try {
-					while (isCalling) {
-						byte[] audioData = record.read(); // audioData captures audio and returns byte stream 
-						DatagramPacket datagramPacket = new DatagramPacket(audioData, audioData.length, remoteAddress, 1243); 
-						// get all data from buffer, create a datagramPacket, send to IP remoteAddress and port of remote 
-						datagramSocket.send(datagramPacket); // datagramPacket send 
-					}
-				} 
-				catch (Exception e) { // in case of error
-					e.printStackTrace();
-				}
-			}).start(); // start Thread
-
-			// Thread to receive and play audio
-			new Thread(() -> {
-				try {
-					byte[] buffer = new byte[1024]; // buffer, size=1024 bytes, captures audio and returns byte stream 
-					while (isCalling) {
-						DatagramPacket datagramPacket = new DatagramPacket(buffer, buffer.length); /* get packet datagramPacket to buffer */
-						datagramSocket.receive(datagramPacket); /* datagramPacket received from datagramSocket, blocking method */
-						playback.write(datagramPacket.getData()); /* call method write from AudioPlayback, play the audio */
-					}
-				} 
-				catch (Exception e) { // in case of error
-					e.printStackTrace();
-				}
-			}).start(); // start Thread
-
-		} 
-		catch (Exception e) { // in case of error
-			e.printStackTrace();
-		}
-	}
-
-	private void stopVoIP() { // method to stop VoIP call 
-		isCalling = false; // set isCalling to false, VoIP call not happening
-		record.stop();  // call method stop from AudioRecord, close targetLine-stream 
-		playback.stop();  // call method stop from AudioPlayback, close sourceLine-stream 
-	}
+//	private void startVoIP() { // method to start VoIP call 
+//		isCalling = true; // set isCalling to true, VoIP call happening
+//		try {
+//			record.open(); /* call method open from AudioRecord, open the targetLine-stream */
+//			playback.open(); // call method open from AudioPlayback, open the sourceLine-stream */
+//
+//			// Thread to capture and send audio
+//			new Thread(() -> {
+//				try {
+//					while (isCalling) {
+//						byte[] audioData = record.read(); // audioData captures audio and returns byte stream 
+//						DatagramPacket datagramPacket = new DatagramPacket(audioData, audioData.length, remoteAddress, 1243); 
+//						// get all data from buffer, create a datagramPacket, send to IP remoteAddress and port of remote 
+//						datagramSocket.send(datagramPacket); // datagramPacket send 
+//					}
+//				} 
+//				catch (Exception e) { // in case of error
+//					e.printStackTrace();
+//				}
+//			}).start(); // start Thread
+//
+//			// Thread to receive and play audio
+//			new Thread(() -> {
+//				try {
+//					byte[] buffer = new byte[1024]; // buffer, size=1024 bytes, captures audio and returns byte stream 
+//					while (isCalling) {
+//						DatagramPacket datagramPacket = new DatagramPacket(buffer, buffer.length); /* get packet datagramPacket to buffer */
+//						datagramSocket.receive(datagramPacket); /* datagramPacket received from datagramSocket, blocking method */
+//						playback.write(datagramPacket.getData()); /* call method write from AudioPlayback, play the audio */
+//					}
+//				} 
+//				catch (Exception e) { // in case of error
+//					e.printStackTrace();
+//				}
+//			}).start(); // start Thread
+//
+//		} 
+//		catch (Exception e) { // in case of error
+//			e.printStackTrace();
+//		}
+//	}
+//
+//	private void stopVoIP() { // method to stop VoIP call 
+//		isCalling = false; // set isCalling to false, VoIP call not happening
+//		record.stop();  // call method stop from AudioRecord, close targetLine-stream 
+//		playback.stop();  // call method stop from AudioPlayback, close sourceLine-stream 
+//	}
 
 	/**
 	 * These methods have to do with the GUI. You can use them if you wish to define

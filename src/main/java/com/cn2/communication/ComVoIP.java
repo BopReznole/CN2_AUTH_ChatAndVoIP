@@ -1,7 +1,4 @@
-package com.cn2.communication;
-
-import com.cn2.communication.AudioPlayback; /* import the class from its package-file */
-import com.cn2.communication.AudioRecord; /* import the class from its package-file */
+package com.cn2.communication; 
 
 import java.io.IOException;
 import java.net.DatagramPacket;
@@ -13,70 +10,67 @@ import javax.sound.sampled.LineUnavailableException;
 
 public class ComVoIP {
 	
-    private AudioPlayback playback; /* declare object for playing sound  */
-    private AudioRecord record; /* declare object for recording sound  */
-    private InetAddress remoteAddress; /* declare IP address remoteAddress, to set it as IP of remote */
-    private DatagramPacket datagramPacket; /* declare datagramPacket the datagramPacket sent or recieved */
-    private DatagramSocket datagramSocket; /* declare socket datagramSocket */
-    private byte[] buffer; /* declare buffer to store audio */
+    private AudioPlayback playback; // declare object for playing sound  
+    private AudioRecord record; // declare object for recording sound  
+    private InetAddress remoteAddress; // declare IP address remoteAddress, to set it as IP of remote 
+    private DatagramSocket datagramSocket; // declare socket datagramSocket 
+    private volatile boolean isCalling = false;
 
     public ComVoIP(DatagramSocket datagramSocket, InetAddress remoteAddress) throws LineUnavailableException {
-    /* conctructor ComVoIP, initialize datagramSocket, remoteAddress */
+    // conctructor ComVoIP, initialize datagramSocket, remoteAddress 
         
         this.playback = new AudioPlayback();
         this.record = new AudioRecord();
         this.remoteAddress  = remoteAddress;
         this.datagramSocket = datagramSocket;
-        this.buffer =  new byte[(int) this.playback.getFormat().getSampleRate()]; /* buffer size according to sampleRate from getFormat method
-        from AudioPlayback class */
     }
     
-    public void send() throws LineUnavailableException { /* method, local sends audio to start communication */
-    	Thread sendAudioThread = new Thread() { /* thread the send audio process  */
-    		@Override public void run() { /* Override because child class run has same methods as parent class send */
-    			try { 
-    				record.open(); /* call method open from AudioRecord, open the targetLine-stream */
-    				buffer = record.read(); /* buffer captures audio and returns byte stream */
-    				datagramPacket = new DatagramPacket(buffer, buffer.length, remoteAddress, 1234); /* get all data from buffer,
-    				create a datagramPacket, send to IP remoteAddress and port of remote */
-    				datagramSocket.send(datagramPacket); /* datagramPacket send */
-    			}
-    			catch (IOException | LineUnavailableException e) { /* in case of error */
-    				e.printStackTrace();
-    			}
-    				
-    			record.stop(); /* call method stop from AudioRecord, close targetLine-stream */
-    		}
-        };
-        sendAudioThread.start(); /* start thread */
-    }
-    
-    public void receiveThenSend() throws LineUnavailableException { /* method, local receives audio first and then sends back */
-    	Thread receiveThenSendAudioThread = new Thread() { /* thread the receiveThenSend audio process  */
-    		@Override public void run() { /* Override because child class run has same methods as parent class receiveThenSend */
-    			try { /* receive */
-    				playback.open(); /* call method open from AudioPlayback, open the sourceLine-stream */
-    				datagramPacket = new DatagramPacket(buffer, buffer.length); /* get packet datagramPacket to buffer */
-    				datagramSocket.receive(datagramPacket); /* datagramPacket received from datagramSocket, blocking method */
-    				InetAddress remoteAddress = datagramPacket.getAddress(); /* get IP address remoteAddress */
-    				int port = datagramPacket.getPort(); /* get port */
-    		        playback.write(buffer); /* call method write from AudioPlayback, play the audio */
-    		        
-    		        /* send */
-    		        record.open(); /* call method open from AudioRecord, open the targetLine-stream */
-    				buffer = record.read(); /* buffer captures audio and returns byte stream */
-    				datagramPacket = new DatagramPacket(buffer, buffer.length, remoteAddress, port); /* get all data from buffer,
-    				create a datagramPacket, send to IP remoteAddress and port of remote */
-    				datagramSocket.send(datagramPacket); /* datagramPacket send */
-    		    }
-    			catch (IOException | LineUnavailableException e) { /* in case of error */
-    				e.printStackTrace();
-    			}
-    	    	
-    	    	playback.stop();
-    		}
-    	};
-    	receiveThenSendAudioThread.start(); /* start thread */
-    }
+    public void startVoIP() { // method to start VoIP call 
+		isCalling = true; // set isCalling to true, VoIP call happening
+		try {
+			record.open(); /* call method open from AudioRecord, open the targetLine-stream */
+			playback.open(); // call method open from AudioPlayback, open the sourceLine-stream */
+
+			// Thread to capture and send audio
+			new Thread(() -> {
+				try {
+					while (isCalling) {
+						byte[] audioData = record.read(); // audioData captures audio and returns byte stream 
+						DatagramPacket datagramPacket = new DatagramPacket(audioData, audioData.length, remoteAddress, 1243); 
+						// get all data from buffer, create a datagramPacket, send to IP remoteAddress and port of remote 
+						datagramSocket.send(datagramPacket); // datagramPacket send 
+					}
+				} 
+				catch (Exception e) { // in case of error
+					e.printStackTrace();
+				}
+			}).start(); // start Thread
+
+			// Thread to receive and play audio
+			new Thread(() -> {
+				try {
+					byte[] buffer = new byte[1024]; // buffer, size=1024 bytes, captures audio and returns byte stream 
+					while (isCalling) {
+						DatagramPacket datagramPacket = new DatagramPacket(buffer, buffer.length); /* get packet datagramPacket to buffer */
+						datagramSocket.receive(datagramPacket); /* datagramPacket received from datagramSocket, blocking method */
+						playback.write(datagramPacket.getData()); /* call method write from AudioPlayback, play the audio */
+					}
+				} 
+				catch (Exception e) { // in case of error
+					e.printStackTrace();
+				}
+			}).start(); // start Thread
+
+		} 
+		catch (Exception e) { // in case of error
+			e.printStackTrace();
+		}
+	}
+
+	public void stopVoIP() { // method to stop VoIP call 
+		isCalling = false; // set isCalling to false, VoIP call not happening
+		record.stop();  // call method stop from AudioRecord, close targetLine-stream 
+		playback.stop();  // call method stop from AudioPlayback, close sourceLine-stream 
+	}
     
 }
