@@ -1,23 +1,10 @@
-package com.cn2.communication; /* file com/cn2/communication */
-
-import com.cn2.communication.ComVoIP; /* import the class from its package-file */
-import com.cn2.communication.ComChat; /* import the class from its package-file */
-
+package com.cn2.communication;
 
 import java.io.*;
-
 import java.net.*;
 
 import javax.swing.JFrame;
-import javax.swing.JOptionPane;
 import javax.swing.JTextField;
-import javax.sound.sampled.AudioFileFormat;
-import javax.sound.sampled.AudioFormat;
-import javax.sound.sampled.AudioInputStream;
-import javax.sound.sampled.AudioSystem;
-import javax.sound.sampled.DataLine;
-import javax.sound.sampled.LineUnavailableException;
-import javax.sound.sampled.TargetDataLine;
 import javax.swing.JButton;
 import javax.swing.JTextArea;
 import javax.swing.JScrollPane;
@@ -37,16 +24,22 @@ public class App extends Frame implements WindowListener, ActionListener {
 	static TextField inputTextField;		
 	static JTextArea textArea;				 
 	static JFrame frame;					
-	static JButton sendButton;				
+	static JButton sendButton;			
 	static JTextField meesageTextField;		  
 	public static Color gray;				
 	final static String newline="\n";		
 	static JButton callButton;				
 	
-	private static ComVoIP comVoip; /* declare ComVoIP object for VoIP */
-	private static ComChat comChat; /* declare ComChat object for Chat */
+	// Chat-related 
+	private DatagramSocket datagramSocket; // declare datagramSocket  
+	private InetAddress remoteAddress; // declare IP address remoteAddress, to set it as IP of remote 
+	private ComChat comChat; // declare ComChat object for Chat 
 
-	
+	// VoIP-related 
+	private AudioRecord record; // declare object for recording sound  
+	private AudioPlayback playback; // declare object for playing sound  
+	private volatile boolean isCalling = false; // VoIP call not happening
+
 	/**
 	 * Construct the app's frame and initialize important parameters
 	 */
@@ -57,7 +50,7 @@ public class App extends Frame implements WindowListener, ActionListener {
 		 */
 		
 		// Setting up the characteristics of the frame
-		super(title);									
+		super(title);								
 		gray = new Color(254, 254, 254);		
 		setBackground(gray);
 		setLayout(new FlowLayout());			
@@ -81,7 +74,7 @@ public class App extends Frame implements WindowListener, ActionListener {
 		/*
 		 * 2. Adding the components to the GUI
 		 */
-		add(scrollPane);								
+		add(scrollPane);							
 		add(inputTextField);
 		add(sendButton);
 		add(callButton);
@@ -91,84 +84,143 @@ public class App extends Frame implements WindowListener, ActionListener {
 		 */
 		sendButton.addActionListener(this);			
 		callButton.addActionListener(this);	
-
 		
+		/*
+		 * 4. Initializing network components
+		 */
+		try {
+			// chat-related components
+			datagramSocket = new DatagramSocket(1234); // define datagramSocket and port=1234 
+			remoteAddress = InetAddress.getByName("localhost"); // define to inetAddress the IP of remote 
+			comChat = new ComChat(datagramSocket, remoteAddress); // 
+
+			// VoIP-related components
+			record = new AudioRecord(); // initialize AudioRecord object
+			playback = new AudioPlayback(); // initialize AudioPlayback object
+		}
+		catch (Exception e) { // in case of error
+			e.printStackTrace();
+		}
 	}
 	
 	/**
 	 * The main method of the application. It continuously listens for
 	 * new messages.
-	 * @throws LineUnavailableException 
 	 */
-	public static void main(String[] args) throws LineUnavailableException, SocketException {
+	public static void main(String[] args){
 	
 		/*
 		 * 1. Create the app's window
 		 */
-		App app = new App("CN2 - AUTH");  // TODO: You can add the title that will displayed on the Window of the App here																		  
+		App app = new App("CN2 - AUTH");
 		app.setSize(500,250);				  
-		app.setVisible(true);				  
+		app.setVisible(true);			  
 
 		/*
-		 * 2. 
+		 * 2. Start receiving Chat messages
 		 */
-		
-		do { /* local always waiting to receive data, infinite loop */
-			try {
-				DatagramSocket datagramSocket = new DatagramSocket(); /* define datagramSocket */
-				InetAddress remoteAddress = InetAddress.getByName("192.168.1.4"); /* define to inetAddress the IP of remote */
-				comVoip = new ComVoIP(datagramSocket, remoteAddress); /* pass datagramSocket, remoteAddress to constructor ComVoIP */
-				comVoip.receiveThenSend(); /* call method receiveThenSend from ComVoIP, receive then send audio data */
-				comChat = new ComChat(datagramSocket, remoteAddress); /* pass datagramSocket, remoteAddress to constructor ComChat */
-				comChat.receive(textArea); /* call method receive from ComChat, receive text data */
-			}
-			catch (IOException e) { /* in case of error */
-				e.printStackTrace();
-				break; /* break from loop */
-			}
-		}while(true); 
+		try {
+			do { // local always waiting to receive data, infinite loop 
+				app.comChat.receive(textArea);  /* call method receive from ComChat, receive text data */
+			}while(true);
+		}
+		catch (Exception e) { // in case of error
+			e.printStackTrace();
+		}
 	}
 	
 	/**
 	 * The method that corresponds to the Action Listener. Whenever an action is performed
 	 * (i.e., one of the buttons is clicked) this method is executed. 
 	 */
-	
 	@Override
 	public void actionPerformed(ActionEvent e) {
 		
-	     /*
+		/*
 		 * Check which button was clicked.
 		 */
 		
-		if (e.getSource() == sendButton){ // The "Send" button was clicked 
+		if (e.getSource() == sendButton){ // The "Send" button was clicked
 			
-			String messageToSend = inputTextField.getText(); /* get string messageToSend from TextField inputTextField */
-			if(!messageToSend.isEmpty()) {/* if there is a messageToSend */
+			String messageToSend  = inputTextField.getText(); // get string messageToSend from TextField inputTextField 
+			if (!messageToSend.isEmpty()) { // if there is a messageToSend 
 				try {
-					textArea.append("local: " + messageToSend); /* appear messageToSend to textArea */
-					textArea.append("\n"); /* change line */
-					inputTextField.setText(""); /* erase messageTosend from inputTextField */
-					comChat.send(messageToSend); /* call method send from ComChat, send text data and start communication */
+					comChat.send(messageToSend ); /* call method send from ComChat, send text data and start communication */
+					textArea.append("local: " + messageToSend  + newline); // appear messageToSend to textArea and change line
+					inputTextField.setText(""); // erase messageTosend from inputTextField 
 				}
-				catch (LineUnavailableException e1) { /* in case of error */
-					e1.printStackTrace();
+				catch (Exception ex) { // in case of error
+					ex.printStackTrace();
 				}
 			}
-		}
+		} 
 		
-		else if (e.getSource() == callButton){ // The "Call" button was clicked 
-				
-			try {
-				comVoip.send(); /* call method send from ComVoIP, send audio data and start audio communication */
-				textArea.append("Ongoing call"); /* appear "Ongoing call" to textArea */
-				textArea.append("\n"); /* change line */
-			}
-			catch (LineUnavailableException e1) { /* in case of error */
-				e1.printStackTrace();
-			}
+		else if (e.getSource() == callButton){ // The "Call" button was clicked
 			
+			if (!isCalling) { // VoIP call happening 
+				try {
+					String message = ("Calling..."); // inform remote local is calling
+					comChat.send(message); // by sending message
+				} catch (Exception ex) { // in case of error
+					ex.printStackTrace();
+				}
+				
+				startVoIP(); // call method startVoIP and start VoIP call
+				callButton.setText("End Call"); // change button to End Call
+			} 
+			else { // VoIP call not happening
+				stopVoIP(); // call method stopVoIP and stop VoIP call
+				callButton.setText("Call"); // change button to Call
+			}
 		}
+	}
+
+	private void startVoIP() { // method to start VoIP call 
+		isCalling = true; // set isCalling to true, VoIP call happening
+		try {
+			record.open(); /* call method open from AudioRecord, open the targetLine-stream */
+			playback.open(); // call method open from AudioPlayback, open the sourceLine-stream */
+
+			// Thread to capture and send audio
+			new Thread(() -> {
+				try {
+					while (isCalling) {
+						byte[] audioData = record.read(); // audioData captures audio and returns byte stream 
+						DatagramPacket datagramPacket = new DatagramPacket(audioData, audioData.length, remoteAddress, 1243); 
+						// get all data from buffer, create a datagramPacket, send to IP remoteAddress and port of remote 
+						datagramSocket.send(datagramPacket); // datagramPacket send 
+					}
+				} 
+				catch (Exception e) { // in case of error
+					e.printStackTrace();
+				}
+			}).start(); // start Thread
+
+			// Thread to receive and play audio
+			new Thread(() -> {
+				try {
+					byte[] buffer = new byte[1024]; // buffer, size=1024 bytes, captures audio and returns byte stream 
+					while (isCalling) {
+						DatagramPacket datagramPacket = new DatagramPacket(buffer, buffer.length); /* get packet datagramPacket to buffer */
+						datagramSocket.receive(datagramPacket); /* datagramPacket received from datagramSocket, blocking method */
+						playback.write(datagramPacket.getData()); /* call method write from AudioPlayback, play the audio */
+					}
+				} 
+				catch (Exception e) { // in case of error
+					e.printStackTrace();
+				}
+			}).start(); // start Thread
+
+		} 
+		catch (Exception e) { // in case of error
+			e.printStackTrace();
+		}
+	}
+
+	private void stopVoIP() { // method to stop VoIP call 
+		isCalling = false; // set isCalling to false, VoIP call not happening
+		record.stop();  // call method stop from AudioRecord, close targetLine-stream 
+		playback.stop();  // call method stop from AudioPlayback, close sourceLine-stream 
 	}
 
 	/**
@@ -190,7 +242,7 @@ public class App extends Frame implements WindowListener, ActionListener {
 	public void windowClosing(WindowEvent e) {
 		// TODO Auto-generated method stub
 		dispose();
-        	System.exit(0);
+        System.exit(0);
 	}
 
 	@Override
@@ -213,3 +265,7 @@ public class App extends Frame implements WindowListener, ActionListener {
 		// TODO Auto-generated method stub	
 	}
 }
+
+
+
+
