@@ -42,9 +42,4 @@ public class AudioPlayback {
 		sourceLine.close(); /* closes the sourceLine and releases resources*/ 
 	}
 	
-	public AudioFormat getFormat() {/* method getFormat */
-		
-		return audioFormat; /* return audioFormat */
-	}
-	
 }
