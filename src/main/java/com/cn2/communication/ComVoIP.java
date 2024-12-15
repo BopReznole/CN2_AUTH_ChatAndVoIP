@@ -17,7 +17,7 @@ public class ComVoIP {
     private volatile boolean isCalling = false;
 
     public ComVoIP(DatagramSocket datagramSocket, InetAddress remoteAddress) throws LineUnavailableException {
-    // conctructor ComVoIP, initialize datagramSocket, remoteAddress 
+    // conctructor ComVoIP, initialize datagramSocket, remoteAddress, playback, record  
         
         this.playback = new AudioPlayback();
         this.record = new AudioRecord();
@@ -26,6 +26,7 @@ public class ComVoIP {
     }
     
     public void startVoIP() { // method to start VoIP call 
+    	
 		isCalling = true; // set isCalling to true, VoIP call happening
 		try {
 			record.open(); /* call method open from AudioRecord, open the targetLine-stream */
@@ -34,8 +35,9 @@ public class ComVoIP {
 			// Thread to capture and send audio
 			new Thread(() -> {
 				try {
+					byte[] audioData = new byte[1024]; // audioData, size=1024 bytes, captures audio and returns byte stream
 					while (isCalling) {
-						byte[] audioData = record.read(); // audioData captures audio and returns byte stream 
+						audioData = record.read(); // audioData captures audio and returns byte stream 
 						DatagramPacket datagramPacket = new DatagramPacket(audioData, audioData.length, remoteAddress, 1243); 
 						// get all data from buffer, create a datagramPacket, send to IP remoteAddress and port of remote 
 						datagramSocket.send(datagramPacket); // datagramPacket send 
@@ -68,6 +70,7 @@ public class ComVoIP {
 	}
 
 	public void stopVoIP() { // method to stop VoIP call 
+		
 		isCalling = false; // set isCalling to false, VoIP call not happening
 		record.stop();  // call method stop from AudioRecord, close targetLine-stream 
 		playback.stop();  // call method stop from AudioPlayback, close sourceLine-stream 

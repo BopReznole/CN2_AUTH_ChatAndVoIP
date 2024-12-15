@@ -30,16 +30,13 @@ public class App extends Frame implements WindowListener, ActionListener {
 	final static String newline="\n";		
 	static JButton callButton;				
 	
-	// Chat-related 
-	private DatagramSocket datagramSocket; // declare datagramSocket  
+	
+	private DatagramSocket ChatSocket; // declare DatagramSocket for Chat
+	private DatagramSocket VoIPSocket; // declare DatagramSocket for VoIP
 	private InetAddress remoteAddress; // declare IP address remoteAddress, to set it as IP of remote 
 	private ComChat comChat; // declare ComChat object for Chat 
-
-	// VoIP-related 
-//	private AudioRecord record; // declare object for recording sound  
-//	private AudioPlayback playback; // declare object for playing sound  
-	private ComVoIP comVoIP; // declare ComChat object for Chat 
-	private volatile boolean isCalling = false; // VoIP call not happening
+	private ComVoIP comVoIP; // declare ComChat object for VoIP 
+	private boolean isCallActive = false; // VoIP call not happening
 
 	/**
 	 * Construct the app's frame and initialize important parameters
@@ -91,17 +88,15 @@ public class App extends Frame implements WindowListener, ActionListener {
 		 */
 		try {
 			// chat-related components
-			datagramSocket = new DatagramSocket(1234); // define datagramSocket and port=1234 
+			ChatSocket = new DatagramSocket(1234); // define ChatSocket, Chat from port=1234 
+			VoIPSocket = new DatagramSocket(1243); // define VoIPSocket, VoIP from port=1243 
 			remoteAddress = InetAddress.getByName("localhost"); // define to inetAddress the IP of remote 
-			comChat = new ComChat(datagramSocket, remoteAddress); // pass datagramSocket, remoteAddress to to constructor ComChat 
-
-			// VoIP-related components
-//			record = new AudioRecord(); // initialize AudioRecord object
-//			playback = new AudioPlayback(); // initialize AudioPlayback object
-			comVoIP = new ComVoIP(datagramSocket, remoteAddress); // pass datagramSocket, remoteAddress to to constructor ComVoIP 
+			comChat = new ComChat(ChatSocket, remoteAddress); // pass datagramSocket, remoteAddress to to constructor ComChat 
+			comVoIP = new ComVoIP(VoIPSocket, remoteAddress); // pass datagramSocket, remoteAddress to to constructor ComVoIP 
 		}
 		catch (Exception e) { // in case of error
 			e.printStackTrace();
+			System.exit(1);
 		}
 	}
 	
@@ -123,7 +118,7 @@ public class App extends Frame implements WindowListener, ActionListener {
 		 */
 		try {
 			do { // local always waiting to receive data, infinite loop 
-				app.comChat.receive(textArea);  /* call method receive from ComChat, receive text data */
+				app.comChat.receive(textArea);  // call method receive from ComChat, receive text data 
 			}while(true);
 		}
 		catch (Exception e) { // in case of error
@@ -159,20 +154,21 @@ public class App extends Frame implements WindowListener, ActionListener {
 		
 		else if (e.getSource() == callButton){ // The "Call" button was clicked
 			
-			if (!isCalling) { // VoIP call happening 
+			if (!isCallActive) { // VoIP call happening 
 				try {
 					String message = ("Calling..."); // inform remote local is calling
 					comChat.send(message); // by sending message
 				} catch (Exception ex) { // in case of error
 					ex.printStackTrace();
 				}
-				
-				comVoIP.startVoIP(); // call method startVoIP from ComVoIP and start VoIP call
 				callButton.setText("End Call"); // change button to End Call
+				comVoIP.startVoIP(); // call method startVoIP from ComVoIP and start VoIP call
+				isCallActive = true;
 			} 
 			else { // VoIP call not happening
-				comVoIP.stopVoIP(); // call method stopVoIP from ComVoIP and stop VoIP call
 				callButton.setText("Call"); // change button to Call
+				comVoIP.stopVoIP(); // call method stopVoIP from ComVoIP and stop VoIP call
+				isCallActive = false;
 			}
 		}
 	}
@@ -194,7 +190,11 @@ public class App extends Frame implements WindowListener, ActionListener {
 
 	@Override
 	public void windowClosing(WindowEvent e) {
-		// TODO Auto-generated method stub
+		if (isCallActive) { // VoIP call not happening
+            comVoIP.stopVoIP(); // stop VoIP call
+        }
+//		ChatSocket.close();
+//		VoIPSocket.close();
 		dispose();
         System.exit(0);
 	}
@@ -218,6 +218,8 @@ public class App extends Frame implements WindowListener, ActionListener {
 	public void windowOpened(WindowEvent e) {
 		// TODO Auto-generated method stub	
 	}
+	
+	
 }
 
 

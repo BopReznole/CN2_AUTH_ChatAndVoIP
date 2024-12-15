@@ -23,7 +23,7 @@ public class ComChat {
 	 
 	 public void send(String messageToRemote) throws LineUnavailableException { // method, local sends text messageToRemote to start communication 
 	    	Thread sendTextThread = new Thread() { // thread the send text process  
-	    		@Override public void run() { // Override because child class run has same methods as parent class send 
+	    		@Override public void run() { // Override so child class run has same methods as parent class send 
 	    			try { 
 	    				buffer = messageToRemote.getBytes(); // convert messageToRemote to bytes and put to sendBuffer 
 	    				DatagramPacket datagramPacket = new DatagramPacket(buffer, buffer.length, remoteAddress, 1234);
@@ -35,18 +35,18 @@ public class ComChat {
 	    			}	
 	    		}
 	        };
-	        sendTextThread.start(); // start thread 
+	        sendTextThread.start(); // start Thread 
 	    }
 	    
 	    public void receive(JTextArea textArea) throws LineUnavailableException { // method, local receives text messageFromRemote 
 	    	Thread receiveTextThread = new Thread() { // thread the receive text process 
-	    		@Override public void run() { // Override because child class run has same methods as parent class receive  
+	    		@Override public void run() { // Override so child class run has same methods as parent class receive  
 	    			try	{ 
 	    				DatagramPacket datagramPacket = new DatagramPacket(buffer, buffer.length); // get packet datagramPacket to receiveBuffer 
 	    				datagramSocket.receive(datagramPacket); // datagramPacket received from datagramSocket, blocking method  
 	    				String messageFromRemote = new String(datagramPacket.getData(), 0, datagramPacket.getLength()); 
 	    				// create string from datagramPacket byte array by remote, offset=0 
-	    				textArea.append("Remote: " + messageFromRemote); // appear messageFromRemote to textArea 
+	    				textArea.append("remote: " + messageFromRemote); // appear messageFromRemote to textArea 
 	    				textArea.append("\n"); // change line
 	    			}
 	    			catch (IOException e) { // in case of error  
@@ -54,8 +54,7 @@ public class ComChat {
 	    			}
 	    		}
 	    	};
-	    	receiveTextThread.start(); // start thread 
+	    	receiveTextThread.start(); // start Thread 
 	    }
 	    
-	
 }
