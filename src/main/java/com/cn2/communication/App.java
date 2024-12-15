@@ -190,13 +190,9 @@ public class App extends Frame implements WindowListener, ActionListener {
 
 	@Override
 	public void windowClosing(WindowEvent e) {
-		if (isCallActive) { // VoIP call not happening
-            comVoIP.stopVoIP(); // stop VoIP call
-        }
-//		ChatSocket.close();
-//		VoIPSocket.close();
+		// TODO Auto-generated method stub
 		dispose();
-        System.exit(0);
+        	System.exit(0);
 	}
 
 	@Override
