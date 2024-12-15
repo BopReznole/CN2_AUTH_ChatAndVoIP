@@ -91,8 +91,8 @@ public class App extends Frame implements WindowListener, ActionListener {
 			ChatSocket = new DatagramSocket(1234); // define ChatSocket, Chat from port=1234 
 			VoIPSocket = new DatagramSocket(1243); // define VoIPSocket, VoIP from port=1243 
 			remoteAddress = InetAddress.getByName("localhost"); // define to inetAddress the IP of remote 
-			comChat = new ComChat(ChatSocket, remoteAddress); // pass datagramSocket, remoteAddress to to constructor ComChat 
-			comVoIP = new ComVoIP(VoIPSocket, remoteAddress); // pass datagramSocket, remoteAddress to to constructor ComVoIP 
+			comChat = new ComChat(ChatSocket, remoteAddress); // pass datagramSocket, remoteAddress to constructor ComChat 
+			comVoIP = new ComVoIP(VoIPSocket, remoteAddress); // pass datagramSocket, remoteAddress to constructor ComVoIP 
 		}
 		catch (Exception e) { // in case of error
 			e.printStackTrace();
