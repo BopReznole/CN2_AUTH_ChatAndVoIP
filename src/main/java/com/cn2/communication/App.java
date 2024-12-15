@@ -167,6 +167,7 @@ public class App extends Frame implements WindowListener, ActionListener {
 			} 
 			else { // VoIP call not happening
 				callButton.setText("Call"); // change button to Call
+				textArea.append("Call ended."); // appear "Call ended" to textArea
 				comVoIP.stopVoIP(); // call method stopVoIP from ComVoIP and stop VoIP call
 				isCallActive = false;
 			}
