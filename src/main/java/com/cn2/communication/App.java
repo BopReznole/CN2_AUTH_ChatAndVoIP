@@ -161,6 +161,7 @@ public class App extends Frame implements WindowListener, ActionListener {
 				} catch (Exception ex) { // in case of error
 					ex.printStackTrace();
 				}
+				textArea.append("Call started."); // appear "Call ended" to textArea
 				callButton.setText("End Call"); // change button to End Call
 				comVoIP.startVoIP(); // call method startVoIP from ComVoIP and start VoIP call
 				isCallActive = true;
