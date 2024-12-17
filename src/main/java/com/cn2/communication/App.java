@@ -143,7 +143,7 @@ public class App extends Frame implements WindowListener, ActionListener {
 			String messageToSend  = inputTextField.getText(); // get string messageToSend from TextField inputTextField 
 			if (!messageToSend.isEmpty()) { // if there is a messageToSend 
 				try {
-					comChat.send(messageToSend ); /* call method send from ComChat, send text data and start communication */
+					comChat.send(messageToSend ); // call method send from ComChat, send text data and start communication 
 					textArea.append("local: " + messageToSend  + newline); // appear messageToSend to textArea and change line
 					inputTextField.setText(""); // erase messageTosend from inputTextField 
 				}
