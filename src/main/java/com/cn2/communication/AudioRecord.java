@@ -10,10 +10,10 @@ import java.io.ByteArrayOutputStream;
 
 public class AudioRecord { // class for recording sound
 	
-	private final TargetDataLine targetLine; // declare targetLine for capturing audio 
-    private final AudioFormat audioFormat; // declare audio format 
-    private final DataLine.Info dataInfo; // declare info for the audio. 
-    private byte[] buffer = new byte[1024]; // declare buffer to store stream in 
+	private final TargetDataLine targetLine; // define targetLine for capturing audio 
+    private final AudioFormat audioFormat; // define audio format 
+    private final DataLine.Info dataInfo; // define info for the audio. 
+    private byte[] buffer = new byte[1024]; // define buffer to store stream in 
     
     public AudioRecord() throws LineUnavailableException { /* constructor AudioCapture, initialize variables
     throws LineUnavailableException if audio line is unavailable */

@@ -9,9 +9,9 @@ import javax.sound.sampled.LineUnavailableException;
 
 public class AudioPlayback { // class for playing sound
 	
-    private final SourceDataLine sourceLine; // declare sourceLine for playing audio 
-    private final AudioFormat audioFormat; // declare audio format 
-    private final DataLine.Info dataInfo; // declare info for the audio. 
+    private final SourceDataLine sourceLine; // define sourceLine for playing audio 
+    private final AudioFormat audioFormat; // define audio format 
+    private final DataLine.Info dataInfo; // define info for the audio. 
     
 	public AudioPlayback() throws LineUnavailableException { /* constructor AudioPlay, initialize variables
 	    throws LineUnavailableException if audio line is unavailable */

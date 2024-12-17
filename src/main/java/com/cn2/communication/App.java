@@ -30,13 +30,29 @@ public class App extends Frame implements WindowListener, ActionListener {
 	final static String newline="\n";		
 	static JButton callButton;				
 	
-	
-	private DatagramSocket ChatSocket; // declare DatagramSocket for Chat
+	// define variables 
+	private DatagramSocket ChatSocket; // define DatagramSocket for Chat
 	private DatagramSocket VoIPSocket; // declare DatagramSocket for VoIP
-	private InetAddress remoteAddress; // declare IP address remoteAddress, to set it as IP of remote 
-	private ComChat comChat; // declare ComChat object for Chat 
-	private ComVoIP comVoIP; // declare ComChat object for VoIP 
+	private InetAddress remoteAddress; // define IP address remoteAddress, to set it as IP of remote 
+	private ComChat comChat; // define ComChat object for Chat 
+	private ComVoIP comVoIP; // define ComChat object for VoIP 
 	private boolean isCallActive = false; // VoIP call not happening
+	
+	{ // initialize variables using non-static initialization block
+	
+	try {
+		ChatSocket = new DatagramSocket(1234); // initialize ChatSocket, Chat from port=1234 
+		VoIPSocket = new DatagramSocket(1243); // initialize VoIPSocket, VoIP from port=1243 
+		remoteAddress = InetAddress.getByName("localhost"); // initialize to inetAddress the IP of remote 
+		comChat = new ComChat(ChatSocket, remoteAddress); // initialize comChat, pass datagramSocket, remoteAddress to constructor ComChat 
+		comVoIP = new ComVoIP(VoIPSocket, remoteAddress); // initialize comVoIP, pass datagramSocket, remoteAddress to constructor ComVoIP 
+	}
+	catch (Exception e) { // in case of error
+		e.printStackTrace();
+		System.exit(1);
+	}
+	
+	}
 
 	/**
 	 * Construct the app's frame and initialize important parameters
@@ -83,21 +99,6 @@ public class App extends Frame implements WindowListener, ActionListener {
 		sendButton.addActionListener(this);			
 		callButton.addActionListener(this);	
 		
-		/*
-		 * 4. Initializing network components
-		 */
-		try {
-			// chat-related components
-			ChatSocket = new DatagramSocket(1234); // define ChatSocket, Chat from port=1234 
-			VoIPSocket = new DatagramSocket(1243); // define VoIPSocket, VoIP from port=1243 
-			remoteAddress = InetAddress.getByName("localhost"); // define to inetAddress the IP of remote 
-			comChat = new ComChat(ChatSocket, remoteAddress); // pass datagramSocket, remoteAddress to constructor ComChat 
-			comVoIP = new ComVoIP(VoIPSocket, remoteAddress); // pass datagramSocket, remoteAddress to constructor ComVoIP 
-		}
-		catch (Exception e) { // in case of error
-			e.printStackTrace();
-			System.exit(1);
-		}
 	}
 	
 	/**
@@ -191,10 +192,10 @@ public class App extends Frame implements WindowListener, ActionListener {
 	}
 
 	@Override
-	public void windowClosing(WindowEvent e) {
+	public void windowClosing(WindowEvent e) {		
 		// TODO Auto-generated method stub
 		dispose();
-        	System.exit(0);
+		System.exit(0);
 	}
 
 	@Override
