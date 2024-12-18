@@ -31,21 +31,25 @@ public class App extends Frame implements WindowListener, ActionListener {
 	static JButton callButton;				
 	
 	// define variables 
-	private DatagramSocket ChatSocket; // define DatagramSocket for Chat
-	private DatagramSocket VoIPSocket; // declare DatagramSocket for VoIP
 	private InetAddress remoteAddress; // define IP address remoteAddress, to set it as IP of remote 
-	private ComChat comChat; // define ComChat object for Chat 
-	private ComVoIP comVoIP; // define ComChat object for VoIP 
+	private UDPChat chatUDP; // define UDPChat object for UDP Chat 
+	private VoIP voip; // define VoIP object for VoIP 
 	private boolean isCallActive = false; // VoIP call not happening
+	
+//	private TCPChatReceiver ReceiverTCP;
+//	private TCPChatSender SenderTCP;
 	
 	{ // initialize variables using non-static initialization block
 	
 	try {
-		ChatSocket = new DatagramSocket(1234); // initialize ChatSocket, Chat from port=1234 
-		VoIPSocket = new DatagramSocket(1243); // initialize VoIPSocket, VoIP from port=1243 
-		remoteAddress = InetAddress.getByName("localhost"); // initialize to inetAddress the IP of remote 
-		comChat = new ComChat(ChatSocket, remoteAddress); // initialize comChat, pass datagramSocket, remoteAddress to constructor ComChat 
-		comVoIP = new ComVoIP(VoIPSocket, remoteAddress); // initialize comVoIP, pass datagramSocket, remoteAddress to constructor ComVoIP 
+		remoteAddress = InetAddress.getByName("localhost"); // initialize to remoteAddress the IP of remote 
+		chatUDP = new UDPChat(new DatagramSocket(1234), remoteAddress); /* initialize chatUDP, pass DatagramSocket from port 1234 and
+		remoteAddress to constructor UDPChat */ 
+		voip = new VoIP(new DatagramSocket(1243), remoteAddress); /* initialize voip, pass DatagramSocket from port 1243 and
+		remoteAddress to constructor VoIP */ 
+		
+//		ReceiverTCP = new TCPChatReceiver(new ServerSocket(5678));
+//		SenderTCP = new TCPChatSender(new Socket(remoteAddress, 5678));			
 	}
 	catch (Exception e) { // in case of error
 		e.printStackTrace();
@@ -119,12 +123,14 @@ public class App extends Frame implements WindowListener, ActionListener {
 		 */
 		try {
 			do { // local always waiting to receive data, infinite loop 
-				app.comChat.receive(textArea);  // call method receive from ComChat, receive text data 
+				app.chatUDP.receive(textArea);  // call method receive from chatUDP, receive text data 
+//				app.ReceiverTCP.receive(textArea);
 			}while(true);
 		}
 		catch (Exception e) { // in case of error
 			e.printStackTrace();
 		}
+		
 	}
 	
 	/**
@@ -143,7 +149,8 @@ public class App extends Frame implements WindowListener, ActionListener {
 			String messageToSend  = inputTextField.getText(); // get string messageToSend from TextField inputTextField 
 			if (!messageToSend.isEmpty()) { // if there is a messageToSend 
 				try {
-					comChat.send(messageToSend ); // call method send from ComChat, send text data 
+					chatUDP.send(messageToSend); // call method send from chatUDP, send text data
+//					SenderTCP.send(messageToSend);
 					textArea.append("local: " + messageToSend  + newline); // appear messageToSend to textArea and change line
 					inputTextField.setText(""); // erase messageTosend from inputTextField 
 				}
@@ -155,23 +162,56 @@ public class App extends Frame implements WindowListener, ActionListener {
 		
 		else if (e.getSource() == callButton){ // The "Call" button was clicked
 			
+			String textAreaText = textArea.getText(); // get the text from textArea
 			if (!isCallActive) { // VoIP call happening 
-				try {
-					String message = ("Calling..."); // inform remote local is calling
-					comChat.send(message); // by sending message
-				} catch (Exception ex) { // in case of error
-					ex.printStackTrace();
+				if (textAreaText.contains("remote: Calling...Pick up!")) { // if remote starts call
+					callButton.setText("Acceptt Call"); // change button to Accept Call
+					try {
+						String message = ("Call picked up."); // inform remote local has picked up
+						chatUDP.send(message); // by sending message
+					} catch (Exception ex) { // in case of error
+						ex.printStackTrace();
+					}
+					callButton.setText("End Call"); // change button to End Call
+					voip.startVoIP(); // call method startVoIP from VoIP and start VoIP call
+					isCallActive = true;
 				}
-				textArea.append("Call started."); // appear "Call started." to textArea
-				callButton.setText("End Call"); // change button to End Call
-				comVoIP.startVoIP(); // call method startVoIP from ComVoIP and start VoIP call
-				isCallActive = true;
+				else { // if local starts call
+					try {
+						String message = ("Calling...Pick up!"); // inform remote local is calling
+						chatUDP.send(message); // by sending message
+					} catch (Exception ex) { // in case of error
+						ex.printStackTrace();
+					}
+					textArea.append("Calling..." + newline); // appear "Calling..." to textArea
+					callButton.setText("End Call"); // change button to End Call
+					voip.startVoIP(); // call method startVoIP from VoIP and start VoIP call
+					isCallActive = true;
+				}
+				
+				if (textAreaText.contains("remote: Call picked up.") || textAreaText.contains("Call picked up.")) {
+					// if local called and remote picked up and vice versa
+					textArea.append("Call started" + newline); // appear "Call started." to textArea
+				}
 			} 
 			else { // VoIP call not happening
-				callButton.setText("Call"); // change button to Call
-				textArea.append("Call ended."); // appear "Call ended." to textArea
-				comVoIP.stopVoIP(); // call method stopVoIP from ComVoIP and stop VoIP call
-				isCallActive = false;
+				if (textAreaText.contains("Call ended.")) { // if remote ended call
+					callButton.setText("Call"); // change button to Call
+					voip.stopVoIP(); // call method stopVoIP from VoIP and stop VoIP call
+					isCallActive = false;
+				} 
+				else { // if local ended call
+					try {
+						String message = ("Call ended."); // inform remote local has stopped the call
+						chatUDP.send(message); // by sending message
+					} catch (Exception ex) { // in case of error
+						ex.printStackTrace();
+					}
+					callButton.setText("Call"); // change button to Call
+					textArea.append("Call ended." + newline); // appear "Call ended." to textArea and change line
+					voip.stopVoIP(); // call method stopVoIP from VoIP and stop VoIP call
+					isCallActive = false;
+				}
 			}
 		}
 	}
