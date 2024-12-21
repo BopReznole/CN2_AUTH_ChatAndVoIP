@@ -4,7 +4,6 @@ import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
-
 import javax.sound.sampled.LineUnavailableException;
 import javax.swing.JTextArea;
 
@@ -21,7 +20,7 @@ public class UDPChat {
 	     this.datagramSocket = datagramSocket;     
 	 }
 	 
-	 public void send(String messageToRemote) throws LineUnavailableException { // method, local sends text messageToRemote to start communication 
+	 public void send(String messageToRemote) throws LineUnavailableException { // method, local sends text messageToRemote  
 		 
 		 try { 
 				buffer = messageToRemote.getBytes(); // convert messageToRemote to bytes and put to sendBuffer 
@@ -37,6 +36,7 @@ public class UDPChat {
 	    public void receive(JTextArea textArea) throws LineUnavailableException { // method, local receives text messageFromRemote 
 	    	
 	    	new Thread(() -> { // Thread the receive text process
+	    		while (true) { // local always waiting to receive data, infinite loop
 	    			try	{ 
 	    				DatagramPacket datagramPacket = new DatagramPacket(buffer, buffer.length); // get packet datagramPacket to receiveBuffer 
 	    				datagramSocket.receive(datagramPacket); // datagramPacket received from datagramSocket, blocking method  
@@ -47,6 +47,7 @@ public class UDPChat {
 	    			catch (IOException e) { // in case of error  
 	    				e.printStackTrace();
 	    			}
+	    		}
 	    	}).start(); // start Thread	
 	    }
 	    

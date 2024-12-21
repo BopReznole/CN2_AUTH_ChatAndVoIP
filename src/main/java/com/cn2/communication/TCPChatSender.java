@@ -6,58 +6,73 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.net.Socket;
-
 import javax.swing.JTextArea;
 
 public class TCPChatSender {
 	
 	private Socket socket; // define socket
 	private BufferedReader bufferedReader; // define buffer bufferedReader, contains data sent from remote   
-	private BufferedWriter bufferedWriter; // define buffer bufferedWriter, cantains data local will send to remote  
+	private BufferedWriter bufferedWriter; // define buffer bufferedWriter, contains data local will send to remote  
 	
 	public TCPChatSender(Socket socket) { // conctructor TCPChatSender, initialize Socket
 		
 		try {
 			this.socket = socket;
-            this.bufferedReader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-            this.bufferedWriter = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()));
+            this.bufferedReader = new BufferedReader(new InputStreamReader(socket.getInputStream())); /* put InputStreamReader to bufferedReader, 
+            InputStreamReader converts the input byte stream coming from socket to character stream */
+            this.bufferedWriter = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream())); /* put OutputStreamWriter to bufferedWriter, 
+            OutputStreamWriter converts the output character stream sent to socket to byte stream */
 		}
-		catch (IOException e) {
+		catch (IOException e) { // in case of error
             e.printStackTrace();
             System.out.println("Error initializing");
             closeEverything(socket, bufferedReader, bufferedWriter);
         }
 	}
 	
-	public void send(String messageToRemote) {
+	public void send(String messageToRemote) { // method, local sends text messageToRemote 
 		
-		new Thread(() -> { // Thread the send text process
-			try {
-				bufferedWriter.write(messageToRemote + "\n"); // msgToSend to bufferedWriter 
-				bufferedWriter.newLine(); /* scanner.nextLine() leaves line separator \n out of the string 
-				so, bufferedWriter.newLine() used to create line separator in buffer */
-				bufferedWriter.flush(); // flush the stream when press enter not when buffer is full
-				
-			}
-			catch (IOException e) { // case of error
-				e.printStackTrace();
-				System.out.println("Error sending message");
-				closeEverything(socket, bufferedReader, bufferedWriter);
-			}
-		}).start(); // start Thread
+		try {
+			bufferedWriter.write(messageToRemote); // messageToRemote to bufferedWriter 
+			bufferedWriter.newLine(); // used to create line separator "\n" in buffer so we know when the messageToRemote is finished  
+			bufferedWriter.flush(); // flush the stream when messageToRemote is finished 
+		}
+		catch (IOException e) { // in case of error
+			e.printStackTrace();
+			System.out.println("Error sending message");
+			closeEverything(socket, bufferedReader, bufferedWriter);
+		}
 	}
 	
-	public void closeEverything(Socket socket, BufferedReader bufferedReader, BufferedWriter bufferedWriter) {
+    public void receive(JTextArea textArea) { // method, local receives text messageFromRemote 
+		
+		new Thread(() -> { // Thread the receive text process 
+			while (socket.isConnected()) { // while socket connection is established
+				try {
+					String messageFromRemote = bufferedReader.readLine(); /// messageFromRemote the message remote sends to local
+					textArea.append("remote: " + messageFromRemote + "\n"); // appear messageFromRemote to textArea and change line
+				}
+				catch (IOException e) { // in case of error
+					e.printStackTrace();
+					System.out.println("Error receiving message");
+					closeEverything(socket, bufferedReader, bufferedWriter);
+					break; // break from while loop if error
+				}
+			}
+	    }).start(); // start Thread  	
+    }
+	
+	public void closeEverything(Socket socket, BufferedReader bufferedReader, BufferedWriter bufferedWriter) { 
 		
 		try {
 			   if (socket != null) // checking for null before closing streams to avoid a null pointer exception 
-				   socket.close();
+				   socket.close(); // closing streams
 			   if (bufferedReader != null)
 				   bufferedReader.close();
 			   if (bufferedWriter != null)
 				   bufferedWriter.close();
 		   }
-		   catch (IOException e) { // case of error 
+		   catch (IOException e) { // in case of error 
 				e.printStackTrace();
 				}
 		}

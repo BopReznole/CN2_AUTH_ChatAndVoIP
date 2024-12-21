@@ -5,6 +5,7 @@ import java.net.*;
 
 import javax.swing.JFrame;
 import javax.swing.JTextField;
+import javax.sound.sampled.LineUnavailableException;
 import javax.swing.JButton;
 import javax.swing.JTextArea;
 import javax.swing.JScrollPane;
@@ -30,26 +31,28 @@ public class App extends Frame implements WindowListener, ActionListener {
 	final static String newline="\n";		
 	static JButton callButton;				
 	
-	// define variables 
+	// define network variables 
 	private InetAddress remoteAddress; // define IP address remoteAddress, to set it as IP of remote 
 	private UDPChat chatUDP; // define UDPChat object for UDP Chat 
 	private VoIP voip; // define VoIP object for VoIP 
 	private boolean isCallActive = false; // VoIP call not happening
 	
-//	private TCPChatReceiver ReceiverTCP;
-//	private TCPChatSender SenderTCP;
+//	private TCPChatSender chatTCP; // define TCPChat object for TCP Chat, if local is the "sender"
+//	private TCPChatReceiver chatTCP; // define TCPChat object for TCP Chat, if local is the "receiver"
 	
-	{ // initialize variables using non-static initialization block
+	{ // initialize network variables using non-static initialization block
 	
 	try {
-		remoteAddress = InetAddress.getByName("localhost"); // initialize to remoteAddress the IP of remote 
+		remoteAddress = InetAddress.getByName("192.168.1.20"); // initialize to remoteAddress the IP of remote 
 		chatUDP = new UDPChat(new DatagramSocket(1234), remoteAddress); /* initialize chatUDP, pass DatagramSocket from port 1234 and
 		remoteAddress to constructor UDPChat */ 
 		voip = new VoIP(new DatagramSocket(1243), remoteAddress); /* initialize voip, pass DatagramSocket from port 1243 and
-		remoteAddress to constructor VoIP */ 
+		remoteAddress to constructor VoIP */
 		
-//		ReceiverTCP = new TCPChatReceiver(new ServerSocket(5678));
-//		SenderTCP = new TCPChatSender(new Socket(remoteAddress, 5678));			
+//		chatTCP = new TCPChatSender(new Socket("192.168.1.20", 2345)); /* initialize chatTCP, pass Socket from port 2345 and 
+//		IP to constructor TCPChatSender */
+//		chatTCP = new TCPChatReceiver(new ServerSocket(2345)); //initialize chatTCP, pass ServerSocket from port 2345 to constructor TCPChatReceiver 
+
 	}
 	catch (Exception e) { // in case of error
 		e.printStackTrace();
@@ -108,9 +111,10 @@ public class App extends Frame implements WindowListener, ActionListener {
 	/**
 	 * The main method of the application. It continuously listens for
 	 * new messages.
+	 * @throws LineUnavailableException 
 	 */
-	public static void main(String[] args){
-	
+	public static void main(String[] args) throws LineUnavailableException {
+		
 		/*
 		 * 1. Create the app's window
 		 */
@@ -121,16 +125,10 @@ public class App extends Frame implements WindowListener, ActionListener {
 		/*
 		 * 2. Start receiving Chat messages
 		 */
-		try {
-			do { // local always waiting to receive data, infinite loop 
-				app.chatUDP.receive(textArea);  // call method receive from chatUDP, receive text data 
-//				app.ReceiverTCP.receive(textArea);
-			}while(true);
-		}
-		catch (Exception e) { // in case of error
-			e.printStackTrace();
-		}
-		
+		app.chatUDP.receive(textArea);  // call method receive from chatUDP, receive text data
+
+//		app.chatTCP.receive(textArea); // call method receive from TCPChatSender or TCPChatRceiver, receive text data
+
 	}
 	
 	/**
@@ -150,7 +148,7 @@ public class App extends Frame implements WindowListener, ActionListener {
 			if (!messageToSend.isEmpty()) { // if there is a messageToSend 
 				try {
 					chatUDP.send(messageToSend); // call method send from chatUDP, send text data
-//					SenderTCP.send(messageToSend);
+//					chatTCP.send(messageToSend); // call method send from chatTCP, send text data
 					textArea.append("local: " + messageToSend  + newline); // appear messageToSend to textArea and change line
 					inputTextField.setText(""); // erase messageTosend from inputTextField 
 				}
@@ -165,55 +163,61 @@ public class App extends Frame implements WindowListener, ActionListener {
 			String textAreaText = textArea.getText(); // get the text from textArea
 			if (!isCallActive) { // VoIP call happening 
 				if (textAreaText.contains("remote: Calling...Pick up!")) { // if remote starts call
-					callButton.setText("Acceptt Call"); // change button to Accept Call
 					try {
-						String message = ("Call picked up."); // inform remote local has picked up
+						String message = ("VoIP call started."); // inform remote local has picked up, call started
 						chatUDP.send(message); // by sending message
 					} catch (Exception ex) { // in case of error
 						ex.printStackTrace();
 					}
-					callButton.setText("End Call"); // change button to End Call
-					voip.startVoIP(); // call method startVoIP from VoIP and start VoIP call
-					isCallActive = true;
+					textArea.append("VoIP call started." + newline); // appear "Call started." to textArea
 				}
 				else { // if local starts call
 					try {
 						String message = ("Calling...Pick up!"); // inform remote local is calling
-						chatUDP.send(message); // by sending message
+					    chatUDP.send(message); // by sending message
 					} catch (Exception ex) { // in case of error
 						ex.printStackTrace();
 					}
 					textArea.append("Calling..." + newline); // appear "Calling..." to textArea
-					callButton.setText("End Call"); // change button to End Call
-					voip.startVoIP(); // call method startVoIP from VoIP and start VoIP call
-					isCallActive = true;
 				}
-				
-				if (textAreaText.contains("remote: Call picked up.") || textAreaText.contains("Call picked up.")) {
-					// if local called and remote picked up and vice versa
-					textArea.append("Call started" + newline); // appear "Call started." to textArea
-				}
+				callButton.setText("End Call"); // change button to End Call
+				voip.startVoIP(); // call method startVoIP from VoIP and start VoIP call
+				isCallActive = true;
 			} 
+			
 			else { // VoIP call not happening
-				if (textAreaText.contains("Call ended.")) { // if remote ended call
-					callButton.setText("Call"); // change button to Call
-					voip.stopVoIP(); // call method stopVoIP from VoIP and stop VoIP call
-					isCallActive = false;
+				if (textAreaText.contains("remote: VoIP call ended.")) { // if remote ended call
+					String content = textArea.getText(); // get the text from textArea
+					String toRemove = "remote: VoIP call ended."; // set the text to be removed 
+					content = content.replace(toRemove, ""); // remove the specific text
+					textArea.setText(content);
 				} 
 				else { // if local ended call
 					try {
-						String message = ("Call ended."); // inform remote local has stopped the call
+						String message = ("VoIP call ended."); // inform remote local has stopped the call
 						chatUDP.send(message); // by sending message
 					} catch (Exception ex) { // in case of error
 						ex.printStackTrace();
 					}
-					callButton.setText("Call"); // change button to Call
-					textArea.append("Call ended." + newline); // appear "Call ended." to textArea and change line
-					voip.stopVoIP(); // call method stopVoIP from VoIP and stop VoIP call
-					isCallActive = false;
 				}
+				
+				textArea.append("VoIP call ended." + newline); // appear "Call ended." to textArea and change line
+				callButton.setText("Call"); // change button to Call
+				voip.stopVoIP(); // call method stopVoIP from VoIP and stop VoIP call
+				isCallActive = false;
+				
+				String oneContent = textArea.getText(); // get the text from textArea
+				String oneToRemove = "remote: Calling...Pick up!"; // set the text to be removed 
+				oneContent = oneContent.replace(oneToRemove, ""); // remove the specific text
+				textArea.setText(oneContent);
+				
+				String twoContent = textArea.getText(); // get the text from textArea
+				String twoToRemove = "Calling..."; // set the text to be removed 
+				twoContent = twoContent.replace(twoToRemove, ""); // remove the specific text
+				textArea.setText(twoContent);
 			}
-		}
+		}	
+			
 	}
 
 	/**
@@ -233,7 +237,7 @@ public class App extends Frame implements WindowListener, ActionListener {
 
 	@Override
 	public void windowClosing(WindowEvent e) {		
-		// TODO Auto-generated method stub
+		// TODO Auto-generated method stub 
 		dispose();
 		System.exit(0);
 	}
