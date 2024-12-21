@@ -188,8 +188,7 @@ public class App extends Frame implements WindowListener, ActionListener {
 			else { // VoIP call not happening
 				if (textAreaText.contains("remote: VoIP call ended.")) { // if remote ended call
 					String content = textArea.getText(); // get the text from textArea
-					String toRemove = "remote: VoIP call ended."; // set the text to be removed 
-					content = content.replace(toRemove, ""); // remove the specific text
+					content = content.replace("remote: VoIP call ended.", ""); // remove the specific text
 					textArea.setText(content);
 				} 
 				else { // if local ended call
@@ -206,14 +205,12 @@ public class App extends Frame implements WindowListener, ActionListener {
 				voip.stopVoIP(); // call method stopVoIP from VoIP and stop VoIP call
 				isCallActive = false;
 				
-				String oneContent = textArea.getText(); // get the text from textArea
-				String oneToRemove = "remote: Calling...Pick up!"; // set the text to be removed 
-				oneContent = oneContent.replace(oneToRemove, ""); // remove the specific text
+				String oneContent = textArea.getText(); // get the text from textArea 
+				oneContent = oneContent.replace("remote: Calling...Pick up!", ""); // remove the specific text
 				textArea.setText(oneContent);
 				
 				String twoContent = textArea.getText(); // get the text from textArea
-				String twoToRemove = "Calling..."; // set the text to be removed 
-				twoContent = twoContent.replace(twoToRemove, ""); // remove the specific text
+				twoContent = twoContent.replace("Calling...", ""); // remove the specific text
 				textArea.setText(twoContent);
 			}
 		}	
