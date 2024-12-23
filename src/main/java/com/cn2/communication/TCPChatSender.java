@@ -72,8 +72,8 @@ public class TCPChatSender {
 			   if (bufferedWriter != null)
 				   bufferedWriter.close();
 		 }
-		 catch (IOException e) { // in case of error 
-				e.printStackTrace();
+		 catch (IOException e) { // in case of error
+			 e.printStackTrace();
 		 }
 		   
 	}

@@ -50,9 +50,8 @@ public class App extends Frame implements WindowListener, ActionListener {
 		remoteAddress to constructor VoIP */
 		
 		chatTCP = new TCPChatSender(new Socket("192.168.1.14", 2345)); /* initialize chatTCP, pass Socket from port 2345 and 
-//		IP to constructor TCPChatSender */
+		IP to constructor TCPChatSender */
 //		chatTCP = new TCPChatReceiver(new ServerSocket(2345)); //initialize chatTCP, pass ServerSocket from port 2345 to constructor TCPChatReceiver 
-
 	}
 	catch (Exception e) { // in case of error
 		e.printStackTrace();
@@ -166,7 +165,8 @@ public class App extends Frame implements WindowListener, ActionListener {
 					try {
 						String message = ("VoIP call started."); // inform remote local has picked up, call started
 						chatUDP.send(message); // by sending message
-					} catch (Exception ex) { // in case of error
+					} 
+					catch (Exception ex) { // in case of error
 						ex.printStackTrace();
 					}
 					String content = textArea.getText(); // get the text from textArea
@@ -177,7 +177,8 @@ public class App extends Frame implements WindowListener, ActionListener {
 					try {
 						String message = ("Calling...Pick up!"); // inform remote local is calling
 					    chatUDP.send(message); // by sending message
-					} catch (Exception ex) { // in case of error
+					} 
+					catch (Exception ex) { // in case of error
 						ex.printStackTrace();
 					}
 					textArea.append("Calling..." + newline); // appear "Calling..." to textArea
@@ -197,7 +198,8 @@ public class App extends Frame implements WindowListener, ActionListener {
 					try {
 						String message = ("VoIP call ended."); // inform remote local has stopped the call
 						chatUDP.send(message); // by sending message
-					} catch (Exception ex) { // in case of error
+					} 
+					catch (Exception ex) { // in case of error
 						ex.printStackTrace();
 					}
 					textArea.append("VoIP call ended."+ newline); // appear "Call ended." to textArea and change line
