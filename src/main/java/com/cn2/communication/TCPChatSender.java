@@ -71,10 +71,11 @@ public class TCPChatSender {
 				   bufferedReader.close();
 			   if (bufferedWriter != null)
 				   bufferedWriter.close();
-		   }
-		   catch (IOException e) { // in case of error 
+		 }
+		 catch (IOException e) { // in case of error 
 				e.printStackTrace();
-				}
-		}
+		 }
+		   
+	}
 
 }

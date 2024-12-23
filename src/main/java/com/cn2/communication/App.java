@@ -37,19 +37,19 @@ public class App extends Frame implements WindowListener, ActionListener {
 	private VoIP voip; // define VoIP object for VoIP 
 	private boolean isCallActive = false; // VoIP call not happening
 	
-//	private TCPChatSender chatTCP; // define TCPChat object for TCP Chat, if local is the "sender"
+	private TCPChatSender chatTCP; // define TCPChat object for TCP Chat, if local is the "sender"
 //	private TCPChatReceiver chatTCP; // define TCPChat object for TCP Chat, if local is the "receiver"
 	
 	{ // initialize network variables using non-static initialization block
 	
 	try {
-		remoteAddress = InetAddress.getByName("192.168.1.20"); // initialize to remoteAddress the IP of remote 
+		remoteAddress = InetAddress.getByName("192.168.1.14"); // initialize to remoteAddress the IP of remote 
 		chatUDP = new UDPChat(new DatagramSocket(1234), remoteAddress); /* initialize chatUDP, pass DatagramSocket from port 1234 and
 		remoteAddress to constructor UDPChat */ 
 		voip = new VoIP(new DatagramSocket(1243), remoteAddress); /* initialize voip, pass DatagramSocket from port 1243 and
 		remoteAddress to constructor VoIP */
 		
-//		chatTCP = new TCPChatSender(new Socket("192.168.1.20", 2345)); /* initialize chatTCP, pass Socket from port 2345 and 
+		chatTCP = new TCPChatSender(new Socket("192.168.1.14", 2345)); /* initialize chatTCP, pass Socket from port 2345 and 
 //		IP to constructor TCPChatSender */
 //		chatTCP = new TCPChatReceiver(new ServerSocket(2345)); //initialize chatTCP, pass ServerSocket from port 2345 to constructor TCPChatReceiver 
 
@@ -125,9 +125,9 @@ public class App extends Frame implements WindowListener, ActionListener {
 		/*
 		 * 2. Start receiving Chat messages
 		 */
-		app.chatUDP.receive(textArea);  // call method receive from chatUDP, receive text data
+//		app.chatUDP.receive(textArea);  // call method receive from chatUDP, receive text data
 
-//		app.chatTCP.receive(textArea); // call method receive from TCPChatSender or TCPChatRceiver, receive text data
+		app.chatTCP.receive(textArea); // call method receive from TCPChatSender or TCPChatRceiver, receive text data
 
 	}
 	
@@ -147,8 +147,8 @@ public class App extends Frame implements WindowListener, ActionListener {
 			String messageToSend  = inputTextField.getText(); // get string messageToSend from TextField inputTextField 
 			if (!messageToSend.isEmpty()) { // if there is a messageToSend 
 				try {
-					chatUDP.send(messageToSend); // call method send from chatUDP, send text data
-//					chatTCP.send(messageToSend); // call method send from chatTCP, send text data
+//					chatUDP.send(messageToSend); // call method send from chatUDP, send text data
+					chatTCP.send(messageToSend); // call method send from chatTCP, send text data
 					textArea.append("local: " + messageToSend  + newline); // appear messageToSend to textArea and change line
 					inputTextField.setText(""); // erase messageTosend from inputTextField 
 				}
@@ -169,7 +169,9 @@ public class App extends Frame implements WindowListener, ActionListener {
 					} catch (Exception ex) { // in case of error
 						ex.printStackTrace();
 					}
-					textArea.append("VoIP call started." + newline); // appear "Call started." to textArea
+					String content = textArea.getText(); // get the text from textArea
+					content = content.replace("remote: Calling...Pick up!", "VoIP call started."); // remove the specific text
+					textArea.setText(content); //and  appear "Call started." to textArea
 				}
 				else { // if local starts call
 					try {
@@ -182,13 +184,13 @@ public class App extends Frame implements WindowListener, ActionListener {
 				}
 				callButton.setText("End Call"); // change button to End Call
 				voip.startVoIP(); // call method startVoIP from VoIP and start VoIP call
-				isCallActive = true;
+				isCallActive = true; // change state
 			} 
 			
 			else { // VoIP call not happening
 				if (textAreaText.contains("remote: VoIP call ended.")) { // if remote ended call
 					String content = textArea.getText(); // get the text from textArea
-					content = content.replace("remote: VoIP call ended.", ""); // remove the specific text
+					content = content.replace("remote: VoIP call ended.", "VoIP call ended."); // remove the specific text
 					textArea.setText(content);
 				} 
 				else { // if local ended call
@@ -198,20 +200,16 @@ public class App extends Frame implements WindowListener, ActionListener {
 					} catch (Exception ex) { // in case of error
 						ex.printStackTrace();
 					}
+					textArea.append("VoIP call ended."+ newline); // appear "Call ended." to textArea and change line
 				}
 				
-				textArea.append("VoIP call ended." + newline); // appear "Call ended." to textArea and change line
 				callButton.setText("Call"); // change button to Call
 				voip.stopVoIP(); // call method stopVoIP from VoIP and stop VoIP call
-				isCallActive = false;
-				
-				String oneContent = textArea.getText(); // get the text from textArea 
-				oneContent = oneContent.replace("remote: Calling...Pick up!", ""); // remove the specific text
-				textArea.setText(oneContent);
+				isCallActive = false; // change state
 				
 				String twoContent = textArea.getText(); // get the text from textArea
 				twoContent = twoContent.replace("Calling...", ""); // remove the specific text
-				textArea.setText(twoContent);
+				textArea.setText(twoContent);								
 			}
 		}	
 			
