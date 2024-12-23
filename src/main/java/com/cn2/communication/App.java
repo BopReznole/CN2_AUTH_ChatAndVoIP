@@ -170,8 +170,8 @@ public class App extends Frame implements WindowListener, ActionListener {
 						ex.printStackTrace();
 					}
 					String content = textArea.getText(); // get the text from textArea
-					content = content.replace("remote: Calling...Pick up!", "VoIP call started."); // remove the specific text
-					textArea.setText(content); //and  appear "Call started." to textArea
+					content = content.replace("remote: Calling...Pick up!", "VoIP call started."); // replace the specific text
+					textArea.setText(content); 
 				}
 				else { // if local starts call
 					try {
@@ -191,7 +191,7 @@ public class App extends Frame implements WindowListener, ActionListener {
 			else { // VoIP call not happening
 				if (textAreaText.contains("remote: VoIP call ended.")) { // if remote ended call
 					String content = textArea.getText(); // get the text from textArea
-					content = content.replace("remote: VoIP call ended.", "VoIP call ended."); // remove the specific text
+					content = content.replace("remote: VoIP call ended.", "VoIP call ended."); // replace the specific text
 					textArea.setText(content);
 				} 
 				else { // if local ended call
