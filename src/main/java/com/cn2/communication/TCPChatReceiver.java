@@ -9,7 +9,7 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import javax.swing.JTextArea;
 
-public class TCPChatReceiver {
+public class TCPChatReceiver { // class for the user "receiver" that accepts the socket connection request
 	
 	private ServerSocket serverSocket; // define serverSocket, waits for requests for connection on a port and creates Socket object
 	private Socket socket; // define socket
@@ -33,7 +33,7 @@ public class TCPChatReceiver {
         }
 	}
 	
-    public void send(String messageToRemote) { // method, local sends text messageToRemote 
+    public void send(String messageToRemote) { // method send, local sends text messageToRemote 
     	
     	try {
 			bufferedWriter.write(messageToRemote); // messageToRemote to bufferedWriter 
@@ -48,7 +48,7 @@ public class TCPChatReceiver {
 		}
 	}
 	
-	public void receive(JTextArea textArea) { // method, local receives text messageFromRemote 
+	public void receive(JTextArea textArea) { // method receive, local receives text messageFromRemote 
 		
 		new Thread(() -> { // Thread the receive text process 
 			while (socket.isConnected()) { // while socket connection is established

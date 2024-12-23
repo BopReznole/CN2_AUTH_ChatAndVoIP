@@ -1,13 +1,11 @@
 package com.cn2.communication; 
 
-import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
 import javax.sound.sampled.LineUnavailableException;
 
-
-public class VoIP {
+public class VoIP { // class for VoIP 
 	
     private AudioPlayback playback; // define object for playing sound  
     private AudioRecord record; // define object for recording sound  
@@ -24,7 +22,7 @@ public class VoIP {
         this.datagramSocket = datagramSocket;
     }
     
-    public void startVoIP() { // method to start VoIP call 
+    public void startVoIP() { // method startVoIP, start VoIP call 
     	
     	isCallActive = true; // set isCallActive to true, VoIP call happening
 		try {
@@ -68,7 +66,7 @@ public class VoIP {
 		}
 	}
 
-	public void stopVoIP() { // method to stop VoIP call 
+	public void stopVoIP() { // method stopVoIP, stop VoIP call 
 		
 		isCallActive = false; // set isCallActive to false, VoIP call not happening
 		record.stop();  // call method stop from AudioRecord, close targetLine-stream 

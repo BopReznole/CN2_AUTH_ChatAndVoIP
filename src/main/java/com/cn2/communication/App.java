@@ -49,8 +49,7 @@ public class App extends Frame implements WindowListener, ActionListener {
 		voip = new VoIP(new DatagramSocket(1243), remoteAddress); /* initialize voip, pass DatagramSocket from port 1243 and
 		remoteAddress to constructor VoIP */
 		
-		chatTCP = new TCPChatSender(new Socket("192.168.1.14", 2345)); /* initialize chatTCP, pass Socket from port 2345 and 
-		IP to constructor TCPChatSender */
+		chatTCP = new TCPChatSender(new Socket("192.168.1.14", 2345)); // initialize chatTCP, pass Socket from port 2345 and IP to constructor TCPChatSender 
 //		chatTCP = new TCPChatReceiver(new ServerSocket(2345)); //initialize chatTCP, pass ServerSocket from port 2345 to constructor TCPChatReceiver 
 	}
 	catch (Exception e) { // in case of error
@@ -204,7 +203,6 @@ public class App extends Frame implements WindowListener, ActionListener {
 					}
 					textArea.append("VoIP call ended."+ newline); // appear "Call ended." to textArea and change line
 				}
-				
 				callButton.setText("Call"); // change button to Call
 				voip.stopVoIP(); // call method stopVoIP from VoIP and stop VoIP call
 				isCallActive = false; // change state

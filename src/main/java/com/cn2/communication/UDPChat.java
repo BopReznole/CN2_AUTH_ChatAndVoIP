@@ -7,7 +7,7 @@ import java.net.InetAddress;
 import javax.sound.sampled.LineUnavailableException;
 import javax.swing.JTextArea;
 
-public class UDPChat {
+public class UDPChat { // class for chat using UDP
 	
 	 private InetAddress remoteAddress; // define IP address remoteAddress, to set it as IP of remote 
 	 private DatagramSocket datagramSocket; // define DatagramSocket datagramSocket 
@@ -20,7 +20,7 @@ public class UDPChat {
 	     this.datagramSocket = datagramSocket;     
 	 }
 	 
-	 public void send(String messageToRemote) throws LineUnavailableException { // method, local sends text messageToRemote  
+	 public void send(String messageToRemote) throws LineUnavailableException { // method send, local sends text messageToRemote  
 		 
 		 try { 
 				buffer = messageToRemote.getBytes(); // convert messageToRemote to bytes and put to sendBuffer 
@@ -33,7 +33,7 @@ public class UDPChat {
 			}	
 		}
 	    
-	    public void receive(JTextArea textArea) throws LineUnavailableException { // method, local receives text messageFromRemote 
+	    public void receive(JTextArea textArea) throws LineUnavailableException { // method receive, local receives text messageFromRemote 
 	    	
 	    	new Thread(() -> { // Thread the receive text process
 	    		while (true) { // local always waiting to receive data, infinite loop

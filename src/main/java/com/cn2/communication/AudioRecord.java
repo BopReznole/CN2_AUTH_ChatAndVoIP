@@ -5,8 +5,6 @@ import javax.sound.sampled.AudioSystem;
 import javax.sound.sampled.DataLine;
 import javax.sound.sampled.TargetDataLine;
 import javax.sound.sampled.LineUnavailableException;
-import java.io.ByteArrayOutputStream;
-
 
 public class AudioRecord { // class for recording sound
 	
@@ -15,9 +13,8 @@ public class AudioRecord { // class for recording sound
     private final DataLine.Info dataInfo; // define info for the audio. 
     private byte[] buffer = new byte[1024]; // define buffer to store stream in 
     
-    public AudioRecord() throws LineUnavailableException { /* constructor AudioCapture, initialize variables
-    throws LineUnavailableException if audio line is unavailable */
-
+    public AudioRecord() throws LineUnavailableException { // constructor AudioCapture, initialize variables
+    
     	this.audioFormat = new AudioFormat(44100, 16, 1, true, false); /* audio format:sampleRate=44100 samples/sec,
 	    sampleSize=32 bits,  1 channel, signed (true) PCM, littleEndian (false) */
         this.dataInfo = new DataLine.Info(TargetDataLine.class, audioFormat); /* object dataInfo, contains information
@@ -30,23 +27,22 @@ public class AudioRecord { // class for recording sound
         this.targetLine = (TargetDataLine) AudioSystem.getLine(dataInfo); // get targetLine 
     }
 
-    public void open() throws LineUnavailableException { /* method open, 
-        throws LineUnavailableException if audioline is unavailable */
+    public void open() throws LineUnavailableException {   
     	
         this.targetLine.open(audioFormat); // open targetLine 
         this.targetLine.start(); // microphone open, targetLine starts capturing data from microphone 
     }
     
-    public byte[] read() { // method read 
+    public byte[] read() { 
     	
-    	targetLine.read(buffer, 0, buffer.length); /* read the captured data into buffer, offset=0 for real time usage */
-        return buffer; /* return bytes of data from buffer */ 
+    	targetLine.read(buffer, 0, buffer.length); // read the captured data into buffer, offset=0 for real time usage 
+        return buffer; // return bytes of data from buffer  
 	 }
 	
-	public void stop() { // method stop 
+	public void stop() {  
 		
-		targetLine.stop(); // stops the targetLine but retains its resources 
-		targetLine.close(); // closes the targetLine and releases resources 
+		targetLine.stop(); // stop the targetLine but retains its resources 
+		targetLine.close(); // close the targetLine and releases resources 
 	}
     
 }    

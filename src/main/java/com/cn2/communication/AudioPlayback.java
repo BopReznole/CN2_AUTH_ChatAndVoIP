@@ -11,10 +11,9 @@ public class AudioPlayback { // class for playing sound
 	
     private final SourceDataLine sourceLine; // define sourceLine for playing audio 
     private final AudioFormat audioFormat; // define audio format 
-    private final DataLine.Info dataInfo; // define info for the audio. 
+    private final DataLine.Info dataInfo; // define info for the audio 
     
-	public AudioPlayback() throws LineUnavailableException { /* constructor AudioPlay, initialize variables
-	    throws LineUnavailableException if audio line is unavailable */
+	public AudioPlayback() throws LineUnavailableException { // constructor AudioPlay, initialize variables
 		
 		this.audioFormat = new AudioFormat(44100, 16, 1, true, false); /* audio format:sampleRate=44100 samples/sec,
 	    sampleSize=32 bits,  1 channel, signed (true) PCM, littleEndian (false) */
@@ -23,22 +22,22 @@ public class AudioPlayback { // class for playing sound
 		this.sourceLine = (SourceDataLine) AudioSystem.getLine(dataInfo); // get sourceLine 
 	}
 	
-	public void open() throws LineUnavailableException { // method open, throws LineUnavailableException if audioline is unavailable 
+	public void open() throws LineUnavailableException { // method open 
 		
         sourceLine.open(audioFormat); // open sourceLine 
         sourceLine.start(); // speaker open, sourceLine starts playing audio from speaker 
 	}
 	
-	public void write(byte[] buffer) { // method write has as input a buffer 
+	public void write(byte[] buffer) { // method write  
 		
-		sourceLine.write(buffer, 0, buffer.length); /* write the producing data into buffer, offset=0 for real time usage */
+		sourceLine.write(buffer, 0, buffer.length); // write the producing data into buffer, offset=0 for real time usage 
 	}
 	
 	public void stop() { // method stop 
 		
 		sourceLine.drain(); // ensure all data is played 
-		sourceLine.stop(); // stops the sourceLine but retains its resources 
-		sourceLine.close(); // closes the sourceLine and releases resources
+		sourceLine.stop(); // stop the sourceLine but retains its resources 
+		sourceLine.close(); // close the sourceLine and releases resources
 	}
 	
 }

@@ -8,7 +8,7 @@ import java.io.OutputStreamWriter;
 import java.net.Socket;
 import javax.swing.JTextArea;
 
-public class TCPChatSender {
+public class TCPChatSender { // class for the user "sender" that sends the socket connection request
 	
 	private Socket socket; // define socket
 	private BufferedReader bufferedReader; // define buffer bufferedReader, contains data sent from remote   
@@ -30,7 +30,7 @@ public class TCPChatSender {
         }
 	}
 	
-	public void send(String messageToRemote) { // method, local sends text messageToRemote 
+	public void send(String messageToRemote) { // method send, local sends text messageToRemote 
 		
 		try {
 			bufferedWriter.write(messageToRemote); // messageToRemote to bufferedWriter 
@@ -44,7 +44,7 @@ public class TCPChatSender {
 		}
 	}
 	
-    public void receive(JTextArea textArea) { // method, local receives text messageFromRemote 
+    public void receive(JTextArea textArea) { // method receive, local receives text messageFromRemote 
 		
 		new Thread(() -> { // Thread the receive text process 
 			while (socket.isConnected()) { // while socket connection is established
