@@ -16,24 +16,24 @@ public class AudioPlayback { // class for playing sound
 	public AudioPlayback() throws LineUnavailableException { // constructor AudioPlay, initialize variables
 		
 		this.audioFormat = new AudioFormat(44100, 16, 1, true, false); /* audio format:sampleRate=44100 samples/sec,
-	    sampleSize=32 bits,  1 channel, signed (true) PCM, littleEndian (false) */
+	    sampleSize=16 bits,  1 channel, signed (true) PCM, littleEndian (false) */
 		this.dataInfo = new DataLine.Info(SourceDataLine.class, audioFormat); /* object dataInfo, contains information
 		on what type of audio format sourceLine must have */
 		this.sourceLine = (SourceDataLine) AudioSystem.getLine(dataInfo); // get sourceLine 
 	}
 	
-	public void open() throws LineUnavailableException { // method open 
+	public void open() throws LineUnavailableException {  
 		
         sourceLine.open(audioFormat); // open sourceLine 
         sourceLine.start(); // speaker open, sourceLine starts playing audio from speaker 
 	}
 	
-	public void write(byte[] buffer) { // method write  
+	public void write(byte[] buffer) {   
 		
 		sourceLine.write(buffer, 0, buffer.length); // write the producing data into buffer, offset=0 for real time usage 
 	}
 	
-	public void stop() { // method stop 
+	public void stop() {  
 		
 		sourceLine.drain(); // ensure all data is played 
 		sourceLine.stop(); // stop the sourceLine but retains its resources 

@@ -26,8 +26,8 @@ public class VoIP { // class for VoIP
     	
     	isCallActive = true; // set isCallActive to true, VoIP call happening
 		try {
-			record.open(); /* call method open from AudioRecord, open the targetLine-stream */
-			playback.open(); // call method open from AudioPlayback, open the sourceLine-stream */
+			record.open(); // call method open from AudioRecord, open the targetLine-stream 
+			playback.open(); // call method open from AudioPlayback, open the sourceLine-stream 
 
 			new Thread(() -> { // Thread the capture and send audio process
 				try {
@@ -51,8 +51,8 @@ public class VoIP { // class for VoIP
 					while (isCallActive) { // while VoIP call is happening
 						DatagramPacket datagramPacket = new DatagramPacket(receiveAudioBuffer, receiveAudioBuffer.length);
 						// get packet datagramPacket to receiveAudioBuffer 
-						datagramSocket.receive(datagramPacket); /* datagramPacket received from datagramSocket, blocking method */
-						playback.write(datagramPacket.getData()); /* call method write from AudioPlayback, play the audio */
+						datagramSocket.receive(datagramPacket); // datagramPacket received from datagramSocket, blocking method 
+						playback.write(datagramPacket.getData()); // call method write from AudioPlayback, play the audio 
 					}
 				} 
 				catch (Exception e) { // in case of error

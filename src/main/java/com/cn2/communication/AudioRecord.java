@@ -16,7 +16,7 @@ public class AudioRecord { // class for recording sound
     public AudioRecord() throws LineUnavailableException { // constructor AudioCapture, initialize variables
     
     	this.audioFormat = new AudioFormat(44100, 16, 1, true, false); /* audio format:sampleRate=44100 samples/sec,
-	    sampleSize=32 bits,  1 channel, signed (true) PCM, littleEndian (false) */
+	    sampleSize=16 bits,  1 channel, signed (true) PCM, littleEndian (false) */
         this.dataInfo = new DataLine.Info(TargetDataLine.class, audioFormat); /* object dataInfo, contains information
 		on what type of audio format targetLine must have */
 
