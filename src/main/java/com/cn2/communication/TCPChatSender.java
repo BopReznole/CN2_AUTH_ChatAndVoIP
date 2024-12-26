@@ -56,7 +56,7 @@ public class TCPChatSender { // class for the user "sender" that sends the socke
 					e.printStackTrace();
 					System.out.println("Error receiving message");
 					closeEverything(socket, bufferedReader, bufferedWriter);
-					break; // break from while loop if error
+					break; // break from loop 
 				}
 			}
 	    }).start(); // start Thread  	

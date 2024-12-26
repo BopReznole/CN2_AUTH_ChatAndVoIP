@@ -43,14 +43,15 @@ public class App extends Frame implements WindowListener, ActionListener {
 	{ // initialize network variables using non-static initialization block
 	
 	try {
-		remoteAddress = InetAddress.getByName("192.168.1.14"); // initialize to remoteAddress the IP of remote 
-		chatUDP = new UDPChat(new DatagramSocket(1234), remoteAddress); /* initialize chatUDP, pass DatagramSocket from port 1234 and
-		remoteAddress to constructor UDPChat */ 
-		voip = new VoIP(new DatagramSocket(1243), remoteAddress); /* initialize voip, pass DatagramSocket from port 1243 and
-		remoteAddress to constructor VoIP */
+		remoteAddress = InetAddress.getByName("192.168.1.14"); // initialize remoteAddress, IP of remote
+		chatUDP = new UDPChat(new DatagramSocket(1234), remoteAddress); /* initialize chatUDP,
+		pass DatagramSocket from port 1234 and remoteAddress to constructor UDPChat */ 
+		voip = new VoIP(new DatagramSocket(1243), remoteAddress); /* initialize voip,
+		pass DatagramSocket from port 1243 and remoteAddress to constructor VoIP */
 		
-		chatTCP = new TCPChatSender(new Socket("192.168.1.14", 2345)); // initialize chatTCP, pass Socket from port 2345 and IP to constructor TCPChatSender 
-//		chatTCP = new TCPChatReceiver(new ServerSocket(2345)); //initialize chatTCP, pass ServerSocket from port 2345 to constructor TCPChatReceiver 
+//		chatTCP = new TCPChatSender(new Socket("192.168.1.14", 2345)); /* initialize chatTCP,
+//		pass Socket from port 2345 and IP of remote to constructor TCPChatSender */ 
+//		chatTCP = new TCPChatReceiver(new ServerSocket(2345)); // initialize chatTCP, pass ServerSocket from port 2345 to constructor TCPChatReceiver 
 	}
 	catch (Exception e) { // in case of error
 		e.printStackTrace();
@@ -123,9 +124,9 @@ public class App extends Frame implements WindowListener, ActionListener {
 		/*
 		 * 2. Start receiving Chat messages
 		 */
-//		app.chatUDP.receive(textArea);  // call method receive from chatUDP, receive text data
+		app.chatUDP.receive(textArea);  // call method receive from chatUDP, receive text data
 
-		app.chatTCP.receive(textArea); // call method receive from TCPChatSender or TCPChatRceiver, receive text data
+//		app.chatTCP.receive(textArea); // call method receive from TCPChatSender or TCPChatRceiver, receive text data
 
 	}
 	
@@ -145,8 +146,8 @@ public class App extends Frame implements WindowListener, ActionListener {
 			String messageToSend  = inputTextField.getText(); // get string messageToSend from TextField inputTextField 
 			if (!messageToSend.isEmpty()) { // if there is a messageToSend 
 				try {
-//					chatUDP.send(messageToSend); // call method send from chatUDP, send text data
-					chatTCP.send(messageToSend); // call method send from chatTCP, send text data
+					chatUDP.send(messageToSend); // call method send from chatUDP, send text data
+//					chatTCP.send(messageToSend); // call method send from chatTCP, send text data
 					textArea.append("local: " + messageToSend  + newline); // appear messageToSend to textArea and change line
 					inputTextField.setText(""); // erase messageTosend from inputTextField 
 				}
@@ -180,11 +181,11 @@ public class App extends Frame implements WindowListener, ActionListener {
 					catch (Exception ex) { // in case of error
 						ex.printStackTrace();
 					}
-					textArea.append("Calling..." + newline); // appear "Calling..." to textArea
+					textArea.append("Calling..." + newline); // appear "Calling..." to textArea and change line
 				}
 				callButton.setText("End Call"); // change button to End Call
-				voip.startVoIP(); // call method startVoIP from VoIP and start VoIP call
-				isCallActive = true; // change state
+				voip.start(); // call method start from VoIP and start VoIP call
+				isCallActive = true; // change state when "End Call" is pressed 
 			} 
 			
 			else { // VoIP call not happening
@@ -204,8 +205,8 @@ public class App extends Frame implements WindowListener, ActionListener {
 					textArea.append("VoIP call ended."+ newline); // appear "Call ended." to textArea and change line
 				}
 				callButton.setText("Call"); // change button to Call
-				voip.stopVoIP(); // call method stopVoIP from VoIP and stop VoIP call
-				isCallActive = false; // change state
+				voip.stop(); // call method stop from VoIP and stop VoIP call
+				isCallActive = false; // change state when "Call" is pressed
 				
 				String twoContent = textArea.getText(); // get the text from textArea
 				twoContent = twoContent.replace("Calling...", ""); // remove the specific text

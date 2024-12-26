@@ -35,11 +35,11 @@ public class AudioRecord { // class for recording sound
     
     public byte[] read() { 
     	
-    	targetLine.read(buffer, 0, buffer.length); // read the captured data into buffer, offset=0 for real time usage 
+    	targetLine.read(buffer, 0, buffer.length); // read the recorded audio data from targetLine into buffer, offset=0 for real time usage 
         return buffer; // return bytes of data from buffer  
-	 }
+	}
 	
-	public void stop() {  
+	public void close() {  
 		
 		targetLine.stop(); // stop the targetLine but retains its resources 
 		targetLine.close(); // close the targetLine and releases resources 

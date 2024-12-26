@@ -30,10 +30,10 @@ public class AudioPlayback { // class for playing sound
 	
 	public void write(byte[] buffer) {   
 		
-		sourceLine.write(buffer, 0, buffer.length); // write the producing data into buffer, offset=0 for real time usage 
+		sourceLine.write(buffer, 0, buffer.length); // write the received audio data from buffer to sourceLine, offset=0 for real time usage 
 	}
 	
-	public void stop() {  
+	public void close() {  
 		
 		sourceLine.drain(); // ensure all data is played 
 		sourceLine.stop(); // stop the sourceLine but retains its resources 
