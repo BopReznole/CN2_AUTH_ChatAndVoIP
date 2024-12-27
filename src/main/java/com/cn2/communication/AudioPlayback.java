@@ -15,8 +15,8 @@ public class AudioPlayback { // class for playing sound
     
 	public AudioPlayback() throws LineUnavailableException { // constructor AudioPlay, initialize variables
 		
-		this.audioFormat = new AudioFormat(44100, 16, 1, true, false); /* audio format:sampleRate=44100 samples/sec,
-	    sampleSize=16 bits,  1 channel, signed (true) PCM, littleEndian (false) */
+		this.audioFormat = new AudioFormat(8000, 8, 1, true, false); /* audio format:sampleRate=8000 samples/sec,
+	    sampleSize=8 bits,  1 channel, signed (true) PCM, littleEndian (false) */
 		this.dataInfo = new DataLine.Info(SourceDataLine.class, audioFormat); /* object dataInfo, contains information
 		on what type of audio format sourceLine must have */
 		this.sourceLine = (SourceDataLine) AudioSystem.getLine(dataInfo); // get sourceLine 

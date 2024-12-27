@@ -14,7 +14,7 @@ public class VoIP { // class for VoIP
     private volatile boolean isCallActive = false; // VoIP call state
 
     public VoIP(DatagramSocket datagramSocket, InetAddress remoteAddress) throws LineUnavailableException {
-    // conctructor VoIP, initialize datagramSocket, remoteAddress, playback, record  
+    // conctructor VoIP, initialize datagramSocket and remoteAddress  
         
         this.playback = new AudioPlayback();
         this.record = new AudioRecord();
@@ -31,7 +31,6 @@ public class VoIP { // class for VoIP
 
 			new Thread(() -> { // Thread the capture and send audio process
 				try {
-					datagramSocket.setSendBufferSize(184320); // how much data datagramSocket can hold when sending 
 					byte[] sendAudioBuffer = new byte[1024]; // sendAudioBuffer, size=1024 bytes, to capture audio stream from microphone
 					while (isCallActive) { // while VoIP call is happening
 						sendAudioBuffer = record.read(); // sendAudioBuffer captures audio and returns byte stream 
@@ -48,7 +47,6 @@ public class VoIP { // class for VoIP
 
 			new Thread(() -> { // Thread the receive and play audio process
 				try {
-					datagramSocket.setReceiveBufferSize(184320); // how much data datagramSocket can hold when receiving 
 					byte[] receiveAudioBuffer = new byte[1024]; // receiveAudioBuffer, size=1024 bytes, to capture byte stream from remote 
 					while (isCallActive) { // while VoIP call is happening
 						DatagramPacket datagramPacket = new DatagramPacket(receiveAudioBuffer, receiveAudioBuffer.length); /* construct datagramPacket,

@@ -37,8 +37,8 @@ public class App extends Frame implements WindowListener, ActionListener {
 	private VoIP voip; // define VoIP object for VoIP 
 	private boolean isCallActive = false; // VoIP call not happening
 	
-	private TCPChatSender chatTCP; // define TCPChat object for TCP Chat, if local is the "sender"
-//	private TCPChatReceiver chatTCP; // define TCPChat object for TCP Chat, if local is the "receiver"
+	private TCPChatClient chatTCP; // define TCPChat object for TCP Chat, if local is the "client"
+//	private TCPChatServer chatTCP; // define TCPChat object for TCP Chat, if local is the "server"
 	
 	{ // initialize network variables using non-static initialization block
 	
@@ -49,9 +49,9 @@ public class App extends Frame implements WindowListener, ActionListener {
 		voip = new VoIP(new DatagramSocket(1243), remoteAddress); /* initialize voip,
 		pass DatagramSocket from port 1243 and remoteAddress to constructor VoIP */
 		
-//		chatTCP = new TCPChatSender(new Socket("192.168.1.14", 2345)); /* initialize chatTCP,
-//		pass Socket from port 2345 and IP of remote to constructor TCPChatSender */ 
-//		chatTCP = new TCPChatReceiver(new ServerSocket(2345)); // initialize chatTCP, pass ServerSocket from port 2345 to constructor TCPChatReceiver 
+		chatTCP = new TCPChatClient(new Socket("192.168.1.14", 2345)); /* initialize chatTCP,
+		pass Socket from port 2345 and IP of remote to constructor TCPChatSender */ 
+//		chatTCP = new TCPChatServer(new ServerSocket(2345)); // initialize chatTCP, pass ServerSocket from port 2345 to constructor TCPChatReceiver 
 	}
 	catch (Exception e) { // in case of error
 		e.printStackTrace();
@@ -124,9 +124,9 @@ public class App extends Frame implements WindowListener, ActionListener {
 		/*
 		 * 2. Start receiving Chat messages
 		 */
-		app.chatUDP.receive(textArea);  // call method receive from chatUDP, receive text data
+//		app.chatUDP.receive(textArea);  // call method receive from chatUDP, receive text data
 
-//		app.chatTCP.receive(textArea); // call method receive from TCPChatSender or TCPChatRceiver, receive text data
+		app.chatTCP.receive(textArea); // call method receive from TCPChatSender or TCPChatRceiver, receive text data
 
 	}
 	
@@ -146,8 +146,8 @@ public class App extends Frame implements WindowListener, ActionListener {
 			String messageToSend  = inputTextField.getText(); // get string messageToSend from TextField inputTextField 
 			if (!messageToSend.isEmpty()) { // if there is a messageToSend 
 				try {
-					chatUDP.send(messageToSend); // call method send from chatUDP, send text data
-//					chatTCP.send(messageToSend); // call method send from chatTCP, send text data
+//					chatUDP.send(messageToSend); // call method send from chatUDP, send text data
+					chatTCP.send(messageToSend); // call method send from chatTCP, send text data
 					textArea.append("local: " + messageToSend  + newline); // appear messageToSend to textArea and change line
 					inputTextField.setText(""); // erase messageTosend from inputTextField 
 				}
@@ -232,10 +232,21 @@ public class App extends Frame implements WindowListener, ActionListener {
 	}
 
 	@Override
-	public void windowClosing(WindowEvent e) {		
-		// TODO Auto-generated method stub 
-		dispose();
-		System.exit(0);
+	public void windowClosing(WindowEvent e) {
+		try {
+			System.out.println("Closing application..."); // app closed
+	        if (chatTCP != null) {
+	        	chatTCP.send("disconnected"); // inform the remote local disconnected
+	            chatTCP.closeEverything(); // close TCP socket and buffers
+	        }
+	    } 
+		catch (Exception ex) { // in case of error
+	        ex.printStackTrace();
+	    } 
+		finally {
+	        dispose();
+	        System.exit(0); // exit the application
+	    }
 	}
 
 	@Override
