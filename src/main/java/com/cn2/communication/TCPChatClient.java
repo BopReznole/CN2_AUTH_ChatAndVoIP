@@ -26,7 +26,7 @@ public class TCPChatClient { // class for the user "client" that sends the socke
 		catch (IOException e) { // in case of error
             e.printStackTrace();
             System.out.println("Error initializing");
-            closeEverything();
+            closeEverything(); // close streams
         }
 	}
 	
