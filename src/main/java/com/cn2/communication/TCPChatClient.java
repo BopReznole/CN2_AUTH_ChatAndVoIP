@@ -39,7 +39,7 @@ public class TCPChatClient { // class for the user "client" that sends the socke
 		}
 		catch (IOException e) { // in case of error
 			e.printStackTrace();
-			closeEverything();
+			closeEverything(); // close streams
         }
 	}
 	
@@ -49,16 +49,19 @@ public class TCPChatClient { // class for the user "client" that sends the socke
 			while (socket.isConnected()) { // while socket connection is established
 				try {
 					String messageFromRemote = bufferedReader.readLine(); // messageFromRemote the message remote sends to local
+					
+					if (messageFromRemote == null) { // check for null, remote closed the app
+	                    textArea.append("remote: Disconnected." + "\n");
+	                    closeEverything(); // close streams
+	                    break; // break from loop 
+	                }
 					textArea.append("remote: " + messageFromRemote + "\n"); // appear messageFromRemote to textArea and change line
 				}
 				catch (IOException e) { // in case of error
 					e.printStackTrace();
-					closeEverything();
+					closeEverything(); // close streams
 					break; // break from loop 
 				}
-				finally { // always executed
-					closeEverything();
-		        }
 			}
 	    }).start(); // start Thread  	
     }

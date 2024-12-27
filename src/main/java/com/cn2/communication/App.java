@@ -232,20 +232,18 @@ public class App extends Frame implements WindowListener, ActionListener {
 	}
 
 	@Override
-	public void windowClosing(WindowEvent e) {
+	public void windowClosing(WindowEvent e) { // close the app
 		try {
-			System.out.println("Closing application..."); // app closed
 	        if (chatTCP != null) {
-	        	chatTCP.send("disconnected"); // inform the remote local disconnected
-	            chatTCP.closeEverything(); // close TCP socket and buffers
+	            chatTCP.closeEverything(); // close streams
 	        }
-	    } 
+	    }
 		catch (Exception ex) { // in case of error
 	        ex.printStackTrace();
 	    } 
-		finally {
+		finally { // always executed
 	        dispose();
-	        System.exit(0); // exit the application
+	        System.exit(0);
 	    }
 	}
 

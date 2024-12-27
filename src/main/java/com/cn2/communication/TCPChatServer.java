@@ -29,7 +29,7 @@ public class TCPChatServer { // class for the user "server" that accepts the soc
 		catch (IOException e) { // in case of error
             e.printStackTrace();
             System.out.println("Error initializing");
-            closeEverything();
+            closeEverything(); // close streams
         }
 	}
 	
@@ -42,27 +42,29 @@ public class TCPChatServer { // class for the user "server" that accepts the soc
 		}
 		catch (IOException e) { // in case of error
 			e.printStackTrace();
-			closeEverything();
+			closeEverything(); // close streams
 		}
 	}
 	
-	public void receive(JTextArea textArea) { // method receive, local receives text messageFromRemote 
+	public void receive(JTextArea textArea) throws IOException { // method receive, local receives text messageFromRemote 
 		
-		new Thread(() -> { // Thread the receive text process 
+		new Thread(() -> { // Thread the receive text process
 			while (socket.isConnected()) { // while socket connection is established
 				try {
-					String messageFromRemote = bufferedReader.readLine(); // messageFromRemote the message remote sends to local 
-					textArea.append("remote: " + messageFromRemote + "\n"); /* appear messageFromRemote,string from bufferedReader,
-					to textArea and change line */
+					String messageFromRemote = bufferedReader.readLine(); // messageFromRemote the message remote sends to local
+
+					if (messageFromRemote == null) { // check for null, remote closed the app
+	                    textArea.append("remote: Disconnected." + "\n");
+	                    closeEverything(); // closing streams
+	                    break; // break from loop 
+	                }
+					textArea.append("remote: " + messageFromRemote + "\n"); // appear messageFromRemote to textArea and change line
 				}
 				catch (IOException e) { // in case of error
 					e.printStackTrace();
-					closeEverything();
+					closeEverything(); // close streams
 					break; // break from loop 
 				}
-				finally { // always executed
-					closeEverything();
-		        }
 			}
 	    }).start(); // start Thread  	
     }
@@ -70,7 +72,7 @@ public class TCPChatServer { // class for the user "server" that accepts the soc
 	public void closeEverything() { // checking for null before closing streams to avoid a null pointer exception and closing streams
 		
 		try {
-			if (socket != null && !socket.isClosed()) { 				
+			if (socket != null) { 				
 				socket.close(); // close socket properly, avoid RST
 			}	
 			if (bufferedReader != null) {
