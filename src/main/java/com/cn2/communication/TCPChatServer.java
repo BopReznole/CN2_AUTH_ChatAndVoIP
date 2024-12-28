@@ -46,7 +46,7 @@ public class TCPChatServer { // class for the user "server" that accepts the soc
 		}
 	}
 	
-	public void receive(JTextArea textArea) throws IOException { // method receive, local receives text messageFromRemote 
+	public void receive(JTextArea textArea) { // method receive, local receives text messageFromRemote 
 		
 		new Thread(() -> { // Thread the receive text process
 			while (socket.isConnected()) { // while socket connection is established
@@ -54,8 +54,8 @@ public class TCPChatServer { // class for the user "server" that accepts the soc
 					String messageFromRemote = bufferedReader.readLine(); // messageFromRemote the message remote sends to local
 
 					if (messageFromRemote == null) { // check for null, remote closed the app
-	                    textArea.append("remote: Disconnected." + "\n");
-	                    closeEverything(); // closing streams
+	                    textArea.append("remote: Disconnected." + "\n"); // inform local
+	                    closeEverything(); // close streams
 	                    break; // break from loop 
 	                }
 					textArea.append("remote: " + messageFromRemote + "\n"); // appear messageFromRemote to textArea and change line
@@ -73,7 +73,7 @@ public class TCPChatServer { // class for the user "server" that accepts the soc
 		
 		try {
 			if (socket != null) { 				
-				socket.close(); // close socket properly, avoid RST
+				socket.close(); // close socket 
 			}	
 			if (bufferedReader != null) {
 				bufferedReader.close(); // close bufferedReader

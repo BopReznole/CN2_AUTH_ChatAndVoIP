@@ -51,7 +51,7 @@ public class TCPChatClient { // class for the user "client" that sends the socke
 					String messageFromRemote = bufferedReader.readLine(); // messageFromRemote the message remote sends to local
 					
 					if (messageFromRemote == null) { // check for null, remote closed the app
-	                    textArea.append("remote: Disconnected." + "\n");
+	                    textArea.append("remote: Disconnected." + "\n"); // inform local
 	                    closeEverything(); // close streams
 	                    break; // break from loop 
 	                }
@@ -70,7 +70,7 @@ public class TCPChatClient { // class for the user "client" that sends the socke
 		
 		try {
 			if (socket != null && !socket.isClosed()) {  				
-				socket.close(); // close socket properly, avoid RST	
+				socket.close(); // close socket 
 			}	
 			if (bufferedReader != null) {
 				bufferedReader.close(); // close bufferedReader

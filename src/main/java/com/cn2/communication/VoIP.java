@@ -34,7 +34,7 @@ public class VoIP { // class for VoIP
 					byte[] sendAudioBuffer = new byte[1024]; // sendAudioBuffer, size=1024 bytes, to capture audio stream from microphone
 					while (isCallActive) { // while VoIP call is happening
 						sendAudioBuffer = record.read(); // sendAudioBuffer captures audio and returns byte stream 
-						DatagramPacket datagramPacket = new DatagramPacket(sendAudioBuffer, sendAudioBuffer.length, remoteAddress, 1243); /* construct datagramPacket,
+						DatagramPacket datagramPacket = new DatagramPacket(sendAudioBuffer, sendAudioBuffer.length, remoteAddress, 1243); /* construct datagramPacket, 
 						send packets of length of sendAudioBuffer, to IP remoteAddress and port=1243 of remote */  
 						datagramSocket.send(datagramPacket); // datagramPacket send 
 					}
