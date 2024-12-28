@@ -111,8 +111,9 @@ public class App extends Frame implements WindowListener, ActionListener {
 	 * The main method of the application. It continuously listens for
 	 * new messages.
 	 * @throws LineUnavailableException 
+	 * @throws IOException 
 	 */
-	public static void main(String[] args) throws LineUnavailableException {
+	public static void main(String[] args) throws LineUnavailableException, IOException {
 		
 		/*
 		 * 1. Create the app's window
@@ -124,9 +125,9 @@ public class App extends Frame implements WindowListener, ActionListener {
 		/*
 		 * 2. Start receiving Chat messages
 		 */
-//		app.chatUDP.receive(textArea);  // call method receive from chatUDP, receive text data
+		app.chatUDP.receive(textArea);  // call method receive from chatUDP, receive text data
 
-		app.chatTCP.receive(textArea); // call method receive from TCPChatSender or TCPChatRceiver, receive text data
+//		app.chatTCP.receive(textArea); // call method receive from TCPChatSender or TCPChatRceiver, receive text data
 
 	}
 	
@@ -146,8 +147,8 @@ public class App extends Frame implements WindowListener, ActionListener {
 			String messageToSend  = inputTextField.getText(); // get string messageToSend from TextField inputTextField 
 			if (!messageToSend.isEmpty()) { // if there is a messageToSend 
 				try {
-//					chatUDP.send(messageToSend); // call method send from chatUDP, send text data
-					chatTCP.send(messageToSend); // call method send from chatTCP, send text data
+					chatUDP.send(messageToSend); // call method send from chatUDP, send text data
+//					chatTCP.send(messageToSend); // call method send from chatTCP, send text data
 					textArea.append("local: " + messageToSend  + newline); // appear messageToSend to textArea and change line
 					inputTextField.setText(""); // erase messageTosend from inputTextField 
 				}
@@ -202,15 +203,15 @@ public class App extends Frame implements WindowListener, ActionListener {
 					catch (Exception ex) { // in case of error
 						ex.printStackTrace();
 					}
-					textArea.append("VoIP call ended."+ newline); // appear "Call ended." to textArea and change line
+					textArea.append("VoIP call ended."+ newline); // appear "VoIP call ended." to textArea and change line
 				}
 				callButton.setText("Call"); // change button to Call
 				voip.stop(); // call method stop from VoIP and stop VoIP call
 				isCallActive = false; // change state when "Call" is pressed
 				
-				String twoContent = textArea.getText(); // get the text from textArea
-				twoContent = twoContent.replace("Calling...", ""); // remove the specific text
-				textArea.setText(twoContent);								
+				String twocontent = textArea.getText(); // get the text from textArea
+				twocontent = twocontent.replace("Calling...", ""); // remove the specific text
+				textArea.setText(twocontent);							
 			}
 		}	
 			
