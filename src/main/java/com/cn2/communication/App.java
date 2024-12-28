@@ -209,9 +209,9 @@ public class App extends Frame implements WindowListener, ActionListener {
 				voip.stop(); // call method stop from VoIP and stop VoIP call
 				isCallActive = false; // change state when "Call" is pressed
 				
-				String twocontent = textArea.getText(); // get the text from textArea
-				twocontent = twocontent.replace("Calling...", ""); // remove the specific text
-				textArea.setText(twocontent);							
+				String twoContent = textArea.getText(); // get the text from textArea
+				twoContent = twoContent.replace("Calling...", ""); // remove the specific text
+				textArea.setText(twoContent);							
 			}
 		}	
 			
