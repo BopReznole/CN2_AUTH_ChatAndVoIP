@@ -72,9 +72,12 @@ public class TCPChatServer { // class for the user "server" that accepts the soc
 	public void closeEverything() { // checking for null before closing streams to avoid a null pointer exception and closing streams
 		
 		try {
-			if (socket != null) { 				
+			if (socket != null && !socket.isClosed()) { 				
 				socket.close(); // close socket 
-			}	
+			}
+			if (serverSocket != null && !serverSocket.isClosed()) { 				
+				serverSocket.close(); // close serverSocket 
+			}
 			if (bufferedReader != null) {
 				bufferedReader.close(); // close bufferedReader
 			}	
