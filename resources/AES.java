@@ -4,11 +4,16 @@ import javax.crypto.Cipher;
 import javax.crypto.KeyGenerator;
 import javax.crypto.Mac;
 import javax.crypto.SecretKey;
+import javax.crypto.SecretKeyFactory;	//for generating key with password
+
 import javax.crypto.spec.GCMParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
+import javax.crypto.spec.PBEKeySpec;
 
 import java.nio.charset.StandardCharsets;
+import java.security.NoSuchAlgorithmException;	//for generating key with password
 import java.security.SecureRandom;
+import java.security.spec.InvalidKeySpecException;	//for generating key with password
 import java.util.Base64;
 
 public class AES {
@@ -16,7 +21,9 @@ public class AES {
     private final int KEY_SIZE = 128;
     private final int T_LEN = 128;
     private byte[] IV;
-
+    private String salt = "potato";
+    
+    
     public void init() throws Exception {
         KeyGenerator generator = KeyGenerator.getInstance("AES");
         generator.init(KEY_SIZE);
@@ -32,10 +39,16 @@ public class AES {
         key = new SecretKeySpec(decode(secretKey), "AES");
         IVgen();
     }
-
+    
+    public void initFromPassword(String password, String salt) throws NoSuchAlgorithmException, InvalidKeySpecException {
+        SecretKeyFactory factory = SecretKeyFactory.getInstance("PBEWithSHA1AndDESede");
+        PBEKeySpec spec = new PBEKeySpec(password.toCharArray(), salt.getBytes(StandardCharsets.UTF_8), 1000, KEY_SIZE);
+        key = factory.generateSecret(spec);
+    }
+    
     public void IVgen() {
     	SecureRandom random = new SecureRandom();
-    	IV = new byte[12];
+    	IV = new byte[12];	//128/8
         random.nextBytes(IV);
     }
     
