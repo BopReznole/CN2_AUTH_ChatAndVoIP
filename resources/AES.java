@@ -35,15 +35,21 @@ public class AES {
         this.IV = decode(IV);
     }
     
-    private void initFromPassword(String secretKey) {
-        key = new SecretKeySpec(decode(secretKey), "AES");
-        IVgen();
-    }
+//    private void initFromPassword(String secretKey) {
+//        key = new SecretKeySpec(decode(secretKey), "AES");
+//        IVgen();
+//    }
     
-    public void initFromPassword(String password, String salt) throws NoSuchAlgorithmException, InvalidKeySpecException {
-        SecretKeyFactory factory = SecretKeyFactory.getInstance("PBEWithSHA1AndDESede");
-        PBEKeySpec spec = new PBEKeySpec(password.toCharArray(), salt.getBytes(StandardCharsets.UTF_8), 1000, KEY_SIZE);
-        key = factory.generateSecret(spec);
+    public void initFromPassword(String password) throws NoSuchAlgorithmException, InvalidKeySpecException {
+//        SecretKeyFactory factory = SecretKeyFactory.getInstance("PBEWithSHA1AndDESede");
+//        PBEKeySpec spec = new PBEKeySpec(password.toCharArray(), salt.getBytes(StandardCharsets.UTF_8), 1000, KEY_SIZE);
+//        key = factory.generateSecret(spec);
+    	SecretKeyFactory factory = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA256");
+        PBEKeySpec spec = new PBEKeySpec(password.toCharArray(), salt.getBytes(), 65536, 256);
+        key = new SecretKeySpec(factory.generateSecret(spec).getEncoded(), "AES");
+//        SecretKey secret = new SecretKeySpec(factory.generateSecret(spec).getEncoded(), "AES");
+//        key = SecretKeySpec(factory.generateSecret(spec).getEncoded(), "AES");
+//        IVgen();
     }
     
     public void IVgen() {
@@ -80,20 +86,28 @@ public class AES {
     }
 
     private void exportKeys() {
-        System.err.println(key.getEncoded());
+    	System.err.println(encode(key.getEncoded()));
+//    	System.err.println(encode(IV));
+//        System.err.println(key.getEncoded());
         System.err.println(IV);
     }
     private void exportIV() {
     	System.err.println(IV);
     }
     
+    private void exportKey() {
+    	System.err.println(encode(key.getEncoded()));
+    }
+    
     public static void main(String[] args) {
         try {
             AES aes = new AES();
             aes.init();
-//            aes.exportIV();
-            aes.IVgen();
-//            aes.exportIV();
+            aes.exportKeys();	//IV is null, key is unkown
+            aes.IVgen();	//sets IV
+//            aes.exportKeys();
+            aes.initFromPassword("sdfg");	//sets key
+//            aes.exportKeys();
             String encryptedMessage = aes.encrypt("TheXCoders");
             String decryptedMessage = aes.decrypt(encryptedMessage);
 
