@@ -35,14 +35,19 @@ public class App extends Frame implements WindowListener, ActionListener {
 	
 	static JButton passButton;	//button to change aes key
 	static JButton ipButton;	//button to change remote IP
+//	static JButton protocolButton;	//button to change connection method
+	
 	// define network variables 
 	private InetAddress remoteAddress; // define IP address remoteAddress, to set it as IP of remote 
 	private UDPChat chatUDP; // define UDPChat object for UDP Chat 
 	private VoIP voip; // define VoIP object for VoIP 
 	private boolean isCallActive = false; // VoIP call not happening
 	
-	private TCPChatClient chatTCPClient; // define TCPChat object for TCP Chat, if local is the "client"
-	private TCPChatServer chatTCPServer; // define TCPChat object for TCP Chat, if local is the "server"
+//	private TCPChatClient chatTCP; // define TCPChat object for TCP Chat, if local is the "client"
+	private TCPChatServer chatTCP; // define TCPChat object for TCP Chat, if local is the "server"
+	
+	private String protocolUsed;
+	
 	
 	// define aes variables
 	public AESci aesci;
@@ -56,7 +61,7 @@ public class App extends Frame implements WindowListener, ActionListener {
 		voip = new VoIP(new DatagramSocket(1243), remoteAddress); /* initialize voip,
 		pass DatagramSocket from port 1243 and remoteAddress to constructor VoIP */
 		
-//		chatTCP = new TCPChatClient(new Socket("192.168.1.14", 2345)); /* initialize chatTCP,
+//		chatTCPClient = new TCPChatClient(new Socket("192.168.1.14", 2345)); /* initialize chatTCP,
 //		pass Socket from port 2345 and IP of remote to constructor TCPChatSender */ 
 //		chatTCPServer = new TCPChatServer(new ServerSocket(2345)); // initialize chatTCP, pass ServerSocket from port 2345 to constructor TCPChatReceiver 
 	}
@@ -109,6 +114,7 @@ public class App extends Frame implements WindowListener, ActionListener {
 		callButton = new JButton("Call");
 		passButton = new JButton("Set Pass");
 		ipButton = new JButton("Set Remote IP");
+//		protocolButton = new JButton("Switch Protocol");
 		/*
 		 * 2. Adding the components to the GUI
 		 */
@@ -118,6 +124,7 @@ public class App extends Frame implements WindowListener, ActionListener {
 		add(callButton);
 		add(passButton);
 		add(ipButton);
+//		add(protocolButton);
 		
 		/*
 		 * 3. Linking the buttons to the ActionListener
@@ -126,6 +133,7 @@ public class App extends Frame implements WindowListener, ActionListener {
 		callButton.addActionListener(this);	
 		passButton.addActionListener(this);
 		ipButton.addActionListener(this);
+//		protocolButton.addActionListener(this);
 	}
 	
 	/**
@@ -147,7 +155,7 @@ public class App extends Frame implements WindowListener, ActionListener {
 		 */
 		app.chatUDP.receive(textArea, app.aesci);  // call method receive from chatUDP, receive text data
 
-//		app.chatTCP.receive(textArea); // call method receive from TCPChatSender or TCPChatRceiver, receive text data
+//		app.chatTCP.receive(textArea, app.aesci); // call method receive from TCPChatSender or TCPChatRceiver, receive text data
 
 	}
 	
@@ -168,13 +176,41 @@ public class App extends Frame implements WindowListener, ActionListener {
 			if (!messageToSend.isEmpty()) { // if there is a messageToSend 
 				try {
 					String plainMessage = messageToSend; //stores the message in plaintext
+					
+					if (messageToSend.length() < 500) {
 					messageToSend = aesci.encryptMessage(messageToSend); //encrypts the message to be send
 					aesci.exportIV();
 					chatUDP.send(messageToSend); // call method send from chatUDP, send text data
+					}
+					else if (messageToSend.length() < 5000) {
+						String part;
+						 int j = 0; //chunk counter
+							 for (int i = 0; i<messageToSend.length(); i+=500) {
+								 	if( !( (i+500) < (messageToSend.length()) ) )
+								 	{
+									 	part = "[Part]";
+									 	part = (part + messageToSend.substring(i, i+500));
+									 	part = aesci.encryptPartMessage(part);
+									 	chatUDP.send(part);
+								 	}
+								 	else {	//i+500>=length
+								 	part = "[Part]";
+							 		part = ( part + messageToSend.substring( i, messageToSend.length() ) );
+							 		part = aesci.encryptPartMessage(part);
+								 	chatUDP.send(part);
+							 		
+							 		part = "[Part]FI";
+							 		part = aesci.encryptMessage(part);
+							 		chatUDP.send(part);
+								 	}
+							 }
+					}
+					
 //					chatTCP.send(messageToSend); // call method send from chatTCP, send text data
 					textArea.append("local: " + plainMessage  + newline); // appear plainMessage to textArea and change line
 					inputTextField.setText(""); // erase messageTosend from inputTextField 
 //					aesci.exportIV();
+					
 				}
 				catch (Exception ex) { // in case of error
 					ex.printStackTrace();
@@ -242,15 +278,20 @@ public class App extends Frame implements WindowListener, ActionListener {
 		else if (e.getSource() == passButton){	//if user wants to change password-AES key
 			String pass  = inputTextField.getText();
 //			aesci.exportKey();
-			try {
-				aesci.initFromPassword(pass);
-			} catch (NoSuchAlgorithmException | InvalidKeySpecException e1) {
-				// TODO Auto-generated catch block
-				e1.printStackTrace();
+			if (!pass.isEmpty()) {
+				try {
+					aesci.initFromPassword(pass);
+				} catch (NoSuchAlgorithmException | InvalidKeySpecException e1) {
+					// TODO Auto-generated catch block
+					e1.printStackTrace();
+				}
+	//			aesci.exportKey();
+				textArea.append("Password changed to : " + pass.substring(0, 1) + "***" + pass.substring((pass.length()-1), pass.length())  + newline);
+	//			textArea.setText("");
 			}
-//			aesci.exportKey();
-			textArea.append("Password changed to : " + pass.substring(0, 1) + "***" + pass.substring((pass.length()-1), pass.length())  + newline);
-//			textArea.setText("");
+			else {
+				textArea.append("Please put a password in the input Field before pressing the button" + newline);
+			}
 		}
 		
 		else if (e.getSource() == ipButton){
@@ -268,8 +309,35 @@ public class App extends Frame implements WindowListener, ActionListener {
 				textArea.append("Can't set IP to blank address" + newline); 
 			}
 		}
+		
+//		else if (e.getSource() == protocolButton){
+//			String prot  = inputTextField.getText();
+//			try {
+//				setProtocol(prot);
+//			} catch (SocketException | LineUnavailableException e1) {
+//				// TODO Auto-generated catch block
+//				e1.printStackTrace();
+//			}
+//		}
 	}
 
+//	public void setProtocol(String prot) throws SocketException, LineUnavailableException{
+//		switch(prot) {
+//		  case "UDP":
+//			  chatUDP = new UDPChat(new DatagramSocket(1234), remoteAddress); /* initialize chatUDP,
+//				pass DatagramSocket from port 1234 and remoteAddress to constructor UDPChat */ 
+//		    break;
+//		  case "TCPClient":
+//		    // code block
+//		    break;
+//		  case "TCPServer":
+//			    // code block
+//			    break;
+//		  default:
+//			  textArea.append("To set a protocol either type UDP or TCPClient or TCPServer" + newline);
+//		}
+//	}
+	
 //	@Override
 	public void setIP(String IPaddress) throws UnknownHostException {
 		remoteAddress = InetAddress.getByName(IPaddress);
@@ -293,8 +361,8 @@ public class App extends Frame implements WindowListener, ActionListener {
 	@Override
 	public void windowClosing(WindowEvent e) { // close the app
 		try {
-	        if (chatTCPServer != null) {
-	        	chatTCPServer.closeEverything(); // close streams
+	        if (chatTCP != null) {
+	        	chatTCP.closeEverything(); // close streams
 	        }
 	    }
 		catch (Exception ex) { // in case of error
