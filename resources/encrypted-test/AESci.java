@@ -24,14 +24,23 @@ public class AESci {
     private String salt = "potato";
     private String encodedIV = "";
     private String ivstr = "";
+    public int counter = 0;
     
     public AESci() throws Exception {
     	init();
     	initFromPassword("sdfg");	//sets key
     	IVgen();
     	IVset();
+//    	prt();
+//    	ct();
     }
     
+    public void ct() {
+    	counter++;
+    }
+    public void prt() {
+    	System.err.println("Counter: " + counter);
+    }
     
     public void init() throws Exception {
         KeyGenerator generator = KeyGenerator.getInstance("AES");
@@ -76,6 +85,8 @@ public class AESci {
     }
     
     public String encrypt(String message) throws Exception {
+//    	prt();
+//    	ct();
     	byte[] messageInBytes = message.getBytes();
 //        byte[] messageInBytes = message.getBytes(StandardCharsets.UTF_8);
         Cipher encryptionCipher = Cipher.getInstance("AES/GCM/NoPadding");
@@ -88,12 +99,15 @@ public class AESci {
     }
 
     public String decrypt(String encryptedMessage) throws Exception {
+//    	prt();
+//    	ct();
         byte[] messageInBytes = decode(encryptedMessage);
         Cipher decryptionCipher = Cipher.getInstance("AES/GCM/NoPadding");
         GCMParameterSpec spec = new GCMParameterSpec(T_LEN, IV);
         decryptionCipher.init(Cipher.DECRYPT_MODE, key, spec);
         byte[] decryptedBytes = decryptionCipher.doFinal(messageInBytes);
-        return new String(decryptedBytes, StandardCharsets.UTF_8);
+//        return new String(decryptedBytes, StandardCharsets.UTF_8);
+        return new String(decryptedBytes);
     }
 
     private String encode(byte[] data) {
@@ -114,23 +128,36 @@ public class AESci {
 //        System.err.println(key.getEncoded());
 //        System.err.println(IV);
     }
-    private void exportIV() {
+    public void exportIV() {
     	System.err.println(encode(IV));
     }
-    
-    private void exportKey() {
+    public void exportIV2() {
+    	System.err.println(IV);
+    }
+    public void exportKey() {
     	System.err.println(encode(key.getEncoded()));
     }
     
     public String encryptMessage(String plainMessage) throws Exception {
     	IVgen(); //generates new IV to add in the message before sending it (saved in ivstr)
+//    	exportIV();
     	String encryptedMessage = encrypt(ivstr + plainMessage);
 //    	setIV(ivstr); //sets the new IV which was previously generated //ONLY WORKS FOR SEPARATE DEVICES
+    	System.err.println(encryptedMessage);
     	return (encryptedMessage);
     }
     
     public String decryptMessage(String encryptedMessage) throws Exception {
-    	return decrypt(encryptedMessage);	//first 16 chars is the IV
+    	if(!encryptedMessage.substring(0, 12).equals("[Voice-Call]"))	{ //checks if it's related to voice call
+//    		exportIV();
+    		System.err.println(encryptedMessage);
+	 		encryptedMessage = decrypt(encryptedMessage);
+	 		String IVnew = encryptedMessage.substring(0, 16);	//first 16 chars is the IV
+//	 		setIV(IVnew);  //Sets the new IV //ONLY WORKS FOR SEPARATE DEVICES
+	 		encryptedMessage = encryptedMessage.substring(16, encryptedMessage.length());
+	 		System.err.println(encryptedMessage);
+	 		}
+    	return encryptedMessage;
     }
     
 //    public static void main(String[] args) {
