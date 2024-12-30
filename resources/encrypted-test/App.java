@@ -35,7 +35,7 @@ public class App extends Frame implements WindowListener, ActionListener {
 	
 	static JButton passButton;	//button to change aes key
 	static JButton ipButton;	//button to change remote IP
-//	static JButton protocolButton;	//button to change connection method
+	static JButton clearButton;	//button to change connection method
 	
 	// define network variables 
 	private InetAddress remoteAddress; // define IP address remoteAddress, to set it as IP of remote 
@@ -46,7 +46,7 @@ public class App extends Frame implements WindowListener, ActionListener {
 //	private TCPChatClient chatTCP; // define TCPChat object for TCP Chat, if local is the "client"
 	private TCPChatServer chatTCP; // define TCPChat object for TCP Chat, if local is the "server"
 	
-	private String protocolUsed;
+//	private String protocolUsed;
 	
 	
 	// define aes variables
@@ -114,7 +114,7 @@ public class App extends Frame implements WindowListener, ActionListener {
 		callButton = new JButton("Call");
 		passButton = new JButton("Set Pass");
 		ipButton = new JButton("Set Remote IP");
-//		protocolButton = new JButton("Switch Protocol");
+		clearButton = new JButton("Clear Chat");
 		/*
 		 * 2. Adding the components to the GUI
 		 */
@@ -124,7 +124,7 @@ public class App extends Frame implements WindowListener, ActionListener {
 		add(callButton);
 		add(passButton);
 		add(ipButton);
-//		add(protocolButton);
+		add(clearButton);
 		
 		/*
 		 * 3. Linking the buttons to the ActionListener
@@ -133,7 +133,7 @@ public class App extends Frame implements WindowListener, ActionListener {
 		callButton.addActionListener(this);	
 		passButton.addActionListener(this);
 		ipButton.addActionListener(this);
-//		protocolButton.addActionListener(this);
+		clearButton.addActionListener(this);
 	}
 	
 	/**
@@ -178,32 +178,46 @@ public class App extends Frame implements WindowListener, ActionListener {
 					String plainMessage = messageToSend; //stores the message in plaintext
 					
 					if (messageToSend.length() < 500) {
-					messageToSend = aesci.encryptMessage(messageToSend); //encrypts the message to be send
-					aesci.exportIV();
-					chatUDP.send(messageToSend); // call method send from chatUDP, send text data
+						messageToSend = aesci.encryptMessage(messageToSend); //encrypts the message to be send
+						aesci.exportIV();
+						chatUDP.send(messageToSend); // call method send from chatUDP, send text data
 					}
-					else if (messageToSend.length() < 5000) {
+					else if (messageToSend.length() < 50000) {
+						int chunkSize = 500;
+						
+						// Calculate the number of iterations needed to process the entire string
+						int numIterations = messageToSend.length() / chunkSize;
+						if (messageToSend.length() % chunkSize > 0) {
+						    numIterations++;
+						}
+						
+						int j = 0; //counter
 						String part;
-						 int j = 0; //chunk counter
-							 for (int i = 0; i<messageToSend.length(); i+=500) {
-								 	if( !( (i+500) < (messageToSend.length()) ) )
-								 	{
-									 	part = "[Part]";
-									 	part = (part + messageToSend.substring(i, i+500));
-									 	part = aesci.encryptPartMessage(part);
-									 	chatUDP.send(part);
-								 	}
-								 	else {	//i+500>=length
-								 	part = "[Part]";
-							 		part = ( part + messageToSend.substring( i, messageToSend.length() ) );
-							 		part = aesci.encryptPartMessage(part);
-								 	chatUDP.send(part);
-							 		
-							 		part = "[Part]FI";
-							 		part = aesci.encryptMessage(part);
-							 		chatUDP.send(part);
-								 	}
-							 }
+						part = "[Part]";
+						// Iterate over the string in chunks of a specified size
+						for (int i = 0; i < messageToSend.length(); i += chunkSize) {
+							
+							// Calculate the end index of the current chunk
+							int endIndex = i + chunkSize;
+							// If the end index is greater than the length of the string, set it to the length of the string
+						    if (endIndex > messageToSend.length()) {
+						        endIndex = messageToSend.length();
+						    }
+						    // Extract the string chunk from the original string
+						    if (j<10) {
+						    	part = ("[Part]0" + j + aesci.encryptMessage(messageToSend.substring(i, endIndex)) );
+						    }
+						    else {
+						    	part = ("[Part]" + j + aesci.encryptMessage(messageToSend.substring(i, endIndex)) );
+						    }
+						    // Format is as such: [Part]00<encrypted-text>
+						    System.err.println(part + "\n");
+						    chatUDP.send(part);
+						    j++;
+							}
+						Thread.sleep(1000);
+						
+						chatUDP.send("[Part]FINISHED");
 					}
 					
 //					chatTCP.send(messageToSend); // call method send from chatTCP, send text data
@@ -310,6 +324,11 @@ public class App extends Frame implements WindowListener, ActionListener {
 			}
 		}
 		
+		else if (e.getSource() == clearButton){
+			textArea.setText("Text Cleared :)" + newline);
+			inputTextField.setText("");
+			
+		}
 //		else if (e.getSource() == protocolButton){
 //			String prot  = inputTextField.getText();
 //			try {

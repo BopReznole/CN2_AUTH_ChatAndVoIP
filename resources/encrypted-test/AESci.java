@@ -25,7 +25,7 @@ public class AESci {
     private String encodedIV = "";
     private String ivstr = "";
     public int counter = 0;
-    public String bufferedMes = "";	
+    public String[] bufferedMes = new String[100];	//our buffer
     
     public AESci() throws Exception {
     	init();
@@ -56,7 +56,7 @@ public class AESci {
     
     public void initFromPassword(String password) throws NoSuchAlgorithmException, InvalidKeySpecException {
     	SecretKeyFactory factory = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA256");
-        PBEKeySpec spec = new PBEKeySpec(password.toCharArray(), salt.getBytes(), 65536, 256);
+        PBEKeySpec spec = new PBEKeySpec(password.toCharArray(), salt.getBytes(), 65536, 128);
         key = new SecretKeySpec(factory.generateSecret(spec).getEncoded(), "AES");
     }
     
@@ -158,22 +158,44 @@ public class AESci {
 //	 		setIV(IVnew);  //Sets the new IV //ONLY WORKS FOR SEPARATE DEVICES
 	 		encryptedMessage = encryptedMessage.substring(16, encryptedMessage.length());
 	 		System.err.println(encryptedMessage);
+	 		
 	 		}
-    	else if(encryptedMessage.substring(0, 6).equals("[Part]")) {
-    		bufferedMes += encryptedMessage.substring(6, encryptedMessage.length());	//removes the part tag
-    		return ("Recieving long message");
+    	else if(encryptedMessage.substring(0, 14).equals("[Part]FINISHED")) {	//should >= 12 chars! 
+    		//String finalMessage = "";
+    		StringBuilder finalMessage = new StringBuilder();
+    		for (int j = 0; j < bufferedMes.length; j++) {
+    			if (bufferedMes[j] == null) {
+    				break;
+    			}
+    			System.err.println("bufferedMes Part" + j + " : \n" + bufferedMes[j]);
+//    			finalMessage = String.join(finalMessage, bufferedMes[j]);
+    			finalMessage.append(bufferedMes[j]);
+    		}
+    		String finalString = finalMessage.toString();
+    		System.err.println("PART_FINISHED: \n" + finalString);
+    		return finalString;
     	}
-    	else if(encryptedMessage.substring(0, 8).equals("[Part]FI")) {
-    		return decryptBufferedMes(bufferedMes);
+    	else if(encryptedMessage.substring(0, 6).equals("[Part]")) {
+    		int i = Integer.parseInt(encryptedMessage.substring(6, 8));	//The numbering of the part (Format: [Part]00)
+    		
+    		bufferedMes[i] = decrypt(encryptedMessage.substring(8, encryptedMessage.length()));	//removes the part tag
+    		
+    		String IVnew = bufferedMes[i].substring(0, 16); //first 16 chars is the IV
+//	 		setIV(IVnew);  //Sets the new IV //ONLY WORKS FOR SEPARATE DEVICES
+    		
+    		bufferedMes[i] = bufferedMes[i].substring(16, bufferedMes[i].length());
+//	 		System.err.println(bufferedMes[i] + "\n");
+    		
+    		return ("Recieving long message, wait...");
     	}
     	return encryptedMessage;
     }
     
     
-    public String decryptBufferedMes(String encryptedBufferedMessage) throws Exception {
-    	encryptedBufferedMessage = decryptMessage(bufferedMes);
-    	return encryptedBufferedMessage;
-    }
+//    public String decryptBufferedMes(String encryptedBufferedMessage) throws Exception {
+//    	encryptedBufferedMessage = decryptMessage(bufferedMes);
+//    	return encryptedBufferedMessage;
+//    }
 //    public static void main(String[] args) {
 //        try {
 //            AESci aesci = new AESci();
