@@ -54,13 +54,8 @@ public class AES {
 //        IVgen();
     }
     
-//    public void IVgen() {
-//    	SecureRandom random = new SecureRandom();
-//    	IV = new byte[12];	//128/8
-//        random.nextBytes(IV);
-//    }
-//    
-    public void IVgen2() {
+
+    public void IVgen() {
     SecureRandom random = new SecureRandom();
     byte[] iv2 = new byte[12];
     random.nextBytes(iv2);
@@ -147,10 +142,10 @@ public class AES {
 //            	}
             
 //            aes.exportKeys();
-            aes.initFromPassword("sdfg");	//sets key
 //            aes.initFromStrings("CHuO1Fjd8YgJqTyapibFBQ==", "e3IYYJC2hxe24/EO");
 //            aes.exportKeys();
-            aes.IVgen2();
+            aes.initFromPassword("sdfg");	//sets key
+            aes.IVgen();
             String encryptedMessage = aes.encrypt("TheXCoders");
             String decryptedMessage = aes.decrypt(encryptedMessage);
 
