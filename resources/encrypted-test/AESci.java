@@ -25,6 +25,7 @@ public class AESci {
     private String encodedIV = "";
     private String ivstr = "";
     public int counter = 0;
+    public String bufferedMes = "";	
     
     public AESci() throws Exception {
     	init();
@@ -148,7 +149,8 @@ public class AESci {
     }
     
     public String decryptMessage(String encryptedMessage) throws Exception {
-    	if(!encryptedMessage.substring(0, 12).equals("[Voice-Call]"))	{ //checks if it's related to voice call
+    	//checks if it's related to voice call or it is part of a big message
+    	if( (!encryptedMessage.substring(0, 12).equals("[Voice-Call]")) && (!encryptedMessage.substring(0, 6).equals("[Part]")) )	{ 
 //    		exportIV();
     		System.err.println(encryptedMessage);
 	 		encryptedMessage = decrypt(encryptedMessage);
@@ -157,9 +159,21 @@ public class AESci {
 	 		encryptedMessage = encryptedMessage.substring(16, encryptedMessage.length());
 	 		System.err.println(encryptedMessage);
 	 		}
+    	else if(encryptedMessage.substring(0, 6).equals("[Part]")) {
+    		bufferedMes += encryptedMessage.substring(6, encryptedMessage.length());	//removes the part tag
+    		return ("Recieving long message");
+    	}
+    	else if(encryptedMessage.substring(0, 8).equals("[Part]FI")) {
+    		return decryptBufferedMes(bufferedMes);
+    	}
     	return encryptedMessage;
     }
     
+    
+    public String decryptBufferedMes(String encryptedBufferedMessage) throws Exception {
+    	encryptedBufferedMessage = decryptMessage(bufferedMes);
+    	return encryptedBufferedMessage;
+    }
 //    public static void main(String[] args) {
 //        try {
 //            AESci aesci = new AESci();
