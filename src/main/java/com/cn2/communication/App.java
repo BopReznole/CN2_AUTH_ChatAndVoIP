@@ -178,7 +178,7 @@ public class App extends Frame implements WindowListener, ActionListener {
 					try {
 						String plainMessage = messageToSend; //stores the message in plaintext temporarily
 						
-						if (messageToSend.length() < 500) {	// if message is under 500 chars it leaves as a single packet
+						if (messageToSend.length() < 501) {	// if message is <=500 chars it leaves as a single packet
 							aesci.exportKeys();	// debug, prints the key and IV of the cipher we will use on the console
 							
 							messageToSend = aesci.encryptMessage(messageToSend,1); //encrypts the message to be send
