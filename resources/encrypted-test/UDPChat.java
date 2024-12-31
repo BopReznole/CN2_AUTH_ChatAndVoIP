@@ -4,8 +4,8 @@ import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
-import java.nio.charset.StandardCharsets;	//for utf test
-import java.util.Arrays;	//for slicing buffer
+//import java.nio.charset.StandardCharsets;	//for utf test
+//import java.util.Arrays;	//for slicing buffer
 
 import javax.sound.sampled.LineUnavailableException;
 import javax.swing.JTextArea;
@@ -25,15 +25,15 @@ public class UDPChat { // class for chat using UDP
 	 
 	 public void send(String messageToRemote) throws LineUnavailableException { // method send, local sends text messageToRemote
 		 	 try {
-	//	 		System.err.println(messageToRemote.length());
-	//	 		System.err.println(messageToRemote.getBytes().length);
 		 		sendBuffer = messageToRemote.getBytes(); // convert messageToRemote to bytes and put to buffer
-//		 		System.err.println(sendBuffer.length);
 		 		 DatagramPacket datagramPacket = new DatagramPacket(sendBuffer, sendBuffer.length, remoteAddress, 1234); /* construct datagramPacket,  
 				 send packets of length of buffer, to IP inetAddress and port=1234 of remote */  
-//		 		System.err.println(datagramPacket.getLength());
 		 		 datagramSocket.send(datagramPacket); // send datagramPacket
-		 		
+		 		 
+//		 		 System.err.println(messageToRemote.length()); 			// debug, prints char length of messageToRemote on the console
+//		 		 System.err.println(messageToRemote.getBytes().length); // debug, prints byte length of messageToRemote on the console
+//		 		 System.err.println(sendBuffer.length); 				// debug, prints byte length of sendBuffer on the console
+//		 		 System.err.println(datagramPacket.getLength()); 		// debug, prints byte length of datagramPacket on the console
 		 	 }
 		 	 catch (IOException e) { // in case of error
 		 		 e.printStackTrace();
@@ -50,10 +50,12 @@ public class UDPChat { // class for chat using UDP
      	 	 		 receive packets of length of buffer */ 
      	 	 		 datagramSocket.receive(datagramPacket); // datagramPacket received from datagramSocket, blocking method  
      	 	 		 String messageFromRemote = new String(datagramPacket.getData(), 0, datagramPacket.getLength()); 
-     	 	 		 // create string from datagramPacket byte array by remote, offset=0
-//     	 	 		 aesci.exportIV();
-//     	 	 		System.err.println(datagramPacket.getLength());
+     	 	 		 // creates string from datagramPacket byte array by remote, offset=0
+     	 	 		 
+//     	 	 		 aesci.exportKeys(); // debug, prints key and IV used to decrypt message
+//     	 	 		 System.err.println(datagramPacket.getLength()); // debug, prints byte length of datagramPacket on the console
      	 	 		 messageFromRemote = aesci.decryptMessage(messageFromRemote);
+//     	 	 		 aesci.exportKeys(); // debug, prints key and IV used after decrypting message
      	 	 		 
      	 	 		 textArea.append("remote: " + messageFromRemote + "\n"); // appear messageFromRemote to textArea and change line
 	 	 	 	 }
@@ -67,26 +69,4 @@ public class UDPChat { // class for chat using UDP
 	 	 	 }
 	 	 }).start(); // start Thread
 	 }
-//	 public void receive(JTextArea textArea, AESci aesci) throws LineUnavailableException {
-//		    new Thread(() -> {
-//		        while (true) {
-//		            try {
-//		                DatagramPacket datagramPacket = new DatagramPacket(receiveBuffer, receiveBuffer.length);
-//		                datagramSocket.receive(datagramPacket);
-//		                int length = datagramPacket.getLength();
-//		                byte[] messageBytes = new byte[length];
-//		                System.arraycopy(datagramPacket.getData(), 0, messageBytes, 0, length);
-//		                System.err.println(length);
-//		                String messageFromRemote = aesci.decryptMessage(new String(messageBytes, 0, length, StandardCharsets.UTF_8));
-//		                textArea.append("remote: " + messageFromRemote + "\n");
-//		            } catch (IOException e) {
-//		                e.printStackTrace();
-//		            } catch (Exception e) {
-//		                e.printStackTrace();
-//		            }
-//		        }
-//		    }).start();
-//		}
-
-
 }

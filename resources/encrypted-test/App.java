@@ -33,9 +33,9 @@ public class App extends Frame implements WindowListener, ActionListener {
 	final static String newline="\n";		
 	static JButton callButton;		
 	
-	static JButton passButton;	//button to change aes key
+	static JButton passButton;	//button to change AES key
 	static JButton ipButton;	//button to change remote IP
-	static JButton clearButton;	//button to change connection method
+	static JButton clearButton;	//button to clear chat
 	
 	// define network variables 
 	private InetAddress remoteAddress; // define IP address remoteAddress, to set it as IP of remote 
@@ -46,10 +46,7 @@ public class App extends Frame implements WindowListener, ActionListener {
 //	private TCPChatClient chatTCP; // define TCPChat object for TCP Chat, if local is the "client"
 	private TCPChatServer chatTCP; // define TCPChat object for TCP Chat, if local is the "server"
 	
-//	private String protocolUsed;
-	
-	
-	// define aes variables
+	// define AES variable	(AES + *ci*pher -> AESci)
 	public AESci aesci;
 	
 	{ // initialize network variables using non-static initialization block
@@ -70,7 +67,7 @@ public class App extends Frame implements WindowListener, ActionListener {
 		System.exit(1);
 	}
 	
-	// initialize aes variable
+	// initialize AES variable
 	try {
 		aesci = new AESci();
 	}
@@ -149,7 +146,7 @@ public class App extends Frame implements WindowListener, ActionListener {
 		App app = new App("CN2 - AUTH");
 		app.setSize(500,250);				  
 		app.setVisible(true);			  
-//		app.aesci.exportIV();
+
 		/*
 		 * 2. Start receiving Chat messages
 		 */
@@ -173,58 +170,78 @@ public class App extends Frame implements WindowListener, ActionListener {
 		if (e.getSource() == sendButton){ // The "Send" button was clicked
 			
 			String messageToSend  = inputTextField.getText(); // get string messageToSend from TextField inputTextField 
+		// All of this if should be commented out if we plan to use TCP (TCP uses ~64Kb max buffer, we don't need chunks)
 			if (!messageToSend.isEmpty()) { // if there is a messageToSend 
 				try {
-					String plainMessage = messageToSend; //stores the message in plaintext
+					String plainMessage = messageToSend; //stores the message in plaintext temporarily
 					
-					if (messageToSend.length() < 500) {
+					if (messageToSend.length() < 500) {	// if message is under 500 chars it leaves as a single packet
+						aesci.exportKeys();	// debug, prints the key and IV of the cipher we will use on the console
+						
 						messageToSend = aesci.encryptMessage(messageToSend); //encrypts the message to be send
-						aesci.exportIV();
 						chatUDP.send(messageToSend); // call method send from chatUDP, send text data
+						
+						aesci.exportIV();	// debug, prints the new IV we created on the console
 					}
-					else if (messageToSend.length() < 50000) {
-						int chunkSize = 500;
-						
-						// Calculate the number of iterations needed to process the entire string
-						int numIterations = messageToSend.length() / chunkSize;
-						if (messageToSend.length() % chunkSize > 0) {
-						    numIterations++;
-						}
-						
-						int j = 0; //counter
+					else if (messageToSend.length() < 50001) {	// texts over 500 chars will be split and sent in chunks
+						int chunkSize = 500; // Sets the maximum chunk size
+						// Debug, calculates the number of iterations needed to process the entire string:
+//						int numIterations = messageToSend.length() / chunkSize;
+//						if (messageToSend.length() % chunkSize > 0) {
+//						    numIterations++;
+//						}
+						int j = 0; // Chunk counter
 						String part;
-						part = "[Part]";
+						part = "[Part]"; // Identification tag for the decryption method
 						// Iterate over the string in chunks of a specified size
 						for (int i = 0; i < messageToSend.length(); i += chunkSize) {
 							
 							// Calculate the end index of the current chunk
-							int endIndex = i + chunkSize;
+							int endIndex = i + chunkSize;	// 0, 500, 1000, 1500...
 							// If the end index is greater than the length of the string, set it to the length of the string
 						    if (endIndex > messageToSend.length()) {
 						        endIndex = messageToSend.length();
 						    }
-						    // Extract the string chunk from the original string
+						    
+						    // Extract and *encrypt* the string chunk from the original string
+						    // Note: for each encryption, a new IV is generated
 						    if (j<10) {
 						    	part = ("[Part]0" + j + aesci.encryptMessage(messageToSend.substring(i, endIndex)) );
+						    	aesci.exportIV();	// debug, prints the new IV we created on the console
+						    	Thread.sleep(150); // Waits 150ms for each packet to be sent before sending the next
 						    }
 						    else {
 						    	part = ("[Part]" + j + aesci.encryptMessage(messageToSend.substring(i, endIndex)) );
+						    	aesci.exportIV();	// debug, prints the new IV we created on the console
+						    	Thread.sleep(150); // Waits 150ms for each packet to be sent before sending the next
 						    }
-						    // Format is as such: [Part]00<encrypted-text>
-						    System.err.println(part + "\n");
-						    chatUDP.send(part);
-						    j++;
+						    // Result format is as such: [Part]00<encrypted-text>
+						    
+						    System.err.println("Chunk[" + j + "]: " + part + "\n"); // debug, prints each chunk on the console
+						    chatUDP.send(part); // sends the chunk
+						    j++; // Adds +1 to the chunk counter
 							}
-						Thread.sleep(1000);
+						Thread.sleep(700); // Waits 700ms for all the packets to be sent before sending the next command
 						
-						chatUDP.send("[Part]FINISHED");
+						// Sends the command to the remote confirming that local finished sending chunks
+						// Forces the remote to combine the recieved chunks and print them on their screen
+						chatUDP.send("[Part]FINISHED"); 
+					}
+					else if (messageToSend.length() > 50000) {	// edge case where user sends >50k char message
+						textArea.append("Message to big. Please send 50000 chars max.\nYour message was not send.");
 					}
 					
-//					chatTCP.send(messageToSend); // call method send from chatTCP, send text data
+//					// Checks needed for TCP, this whole if should be commented if we plan to use UDP
+					// TCP can send ~64Kb packets easily, a lot bigger than what we normally need for this app
+//					if (!messageToSend.isEmpty() || (messageToSend.length() > 50000) ) { // if there is a messageToSend 
+//						try {
+//							chatTCP.send(messageToSend); // call method send from chatTCP, send text data
+//					else {
+//						textArea.append("Message to big. Please send 50000 chars max.\nYour message was not send.");
+//					}
+
 					textArea.append("local: " + plainMessage  + newline); // appear plainMessage to textArea and change line
-					inputTextField.setText(""); // erase messageTosend from inputTextField 
-//					aesci.exportIV();
-					
+					inputTextField.setText(""); // erase messageTosend from inputTextField					
 				}
 				catch (Exception ex) { // in case of error
 					ex.printStackTrace();
@@ -234,6 +251,7 @@ public class App extends Frame implements WindowListener, ActionListener {
 		
 		else if (e.getSource() == callButton){ // The "Call" button was clicked
 			
+			// the [Voice-Call] tag is recognised by the UDPChat.recieve method
 			String textAreaText = textArea.getText(); // get the text from textArea
 			if (!isCallActive) { // VoIP call happening 
 				if (textAreaText.contains("[Voice-Call] remote: Calling...Pick up!")) { // if remote starts call
@@ -289,30 +307,33 @@ public class App extends Frame implements WindowListener, ActionListener {
 			}
 		}	
 		
-		else if (e.getSource() == passButton){	//if user wants to change password-AES key
+		else if (e.getSource() == passButton){	// if user wants to change password-AES key (both should have the same)
 			String pass  = inputTextField.getText();
-//			aesci.exportKey();
-			if (!pass.isEmpty()) {
+			if (!pass.isEmpty() && !(pass.length() < 6)) {	// checks if password is empty or under 6 chars
+				aesci.exportKeys(); // debug, prints key and IV on the console
+				
 				try {
 					aesci.initFromPassword(pass);
 				} catch (NoSuchAlgorithmException | InvalidKeySpecException e1) {
 					// TODO Auto-generated catch block
 					e1.printStackTrace();
 				}
-	//			aesci.exportKey();
+				
+				aesci.exportKeys(); // debug, prints key and IV on the console
 				textArea.append("Password changed to : " + pass.substring(0, 1) + "***" + pass.substring((pass.length()-1), pass.length())  + newline);
-	//			textArea.setText("");
+//				inputTextField.getText(""); //for extra protection we can remove the password from the textfield
 			}
 			else {
-				textArea.append("Please put a password in the input Field before pressing the button" + newline);
+				textArea.append("Please put a password (over 5 chars) in the input Field before pressing the button" + newline);
 			}
 		}
 		
-		else if (e.getSource() == ipButton){
+		// experimental
+		else if (e.getSource() == ipButton){ // Used to change the IP of the remote (should be used mainly with UDP)
 			String newIP  = inputTextField.getText();
-			if (!newIP.isEmpty()) {
+			if (!newIP.isEmpty()) { // checks if IP is empty
 				try {
-					setIP(newIP);
+					setIP(newIP); // sets new remote IP to the contents of the inputTextField
 				} catch (UnknownHostException e1) {
 					// TODO Auto-generated catch block
 					e1.printStackTrace();
@@ -324,11 +345,13 @@ public class App extends Frame implements WindowListener, ActionListener {
 			}
 		}
 		
-		else if (e.getSource() == clearButton){
+		else if (e.getSource() == clearButton){ // Clears the chat area
 			textArea.setText("Text Cleared :)" + newline);
 			inputTextField.setText("");
 			
 		}
+	
+//		ABANDONED: WOULD BE USED TO DYNAMICALLY CHANGE THE TYPE OF THE CONNECTION (too complicated)
 //		else if (e.getSource() == protocolButton){
 //			String prot  = inputTextField.getText();
 //			try {
@@ -340,6 +363,7 @@ public class App extends Frame implements WindowListener, ActionListener {
 //		}
 	}
 
+//  ABANDONED (SAME USE AND REASON AS ABOVE)	
 //	public void setProtocol(String prot) throws SocketException, LineUnavailableException{
 //		switch(prot) {
 //		  case "UDP":
@@ -358,6 +382,7 @@ public class App extends Frame implements WindowListener, ActionListener {
 //	}
 	
 //	@Override
+	// Sets new remote IP (called when ipButton is pressed)
 	public void setIP(String IPaddress) throws UnknownHostException {
 		remoteAddress = InetAddress.getByName(IPaddress);
 	}

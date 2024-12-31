@@ -58,7 +58,7 @@ public class TCPChatServer { // class for the user "server" that accepts the soc
 	                    closeEverything(); // close streams
 	                    break; // break from loop 
 	                }
-					messageFromRemote = aesci.decryptMessage(messageFromRemote); //decrypts  the message
+					messageFromRemote = aesci.decryptMessage(messageFromRemote); // decrypts  the message
 					textArea.append("remote: " + messageFromRemote + "\n"); // appear messageFromRemote to textArea and change line
 				}
 				catch (IOException e) { // in case of error
