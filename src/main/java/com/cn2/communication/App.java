@@ -178,7 +178,7 @@ public class App extends Frame implements WindowListener, ActionListener {
 					try {
 						String plainMessage = messageToSend; //stores the message in plaintext temporarily
 						
-						if (messageToSend.length() < 501) {	// if message is <=500 chars it leaves as a single packet
+						if (messageToSend.length() < 501) {	// if message is under 500 chars it leaves as a single packet
 							aesci.exportKeys();	// debug, prints the key and IV of the cipher we will use on the console
 							
 							messageToSend = aesci.encryptMessage(messageToSend,1); //encrypts the message to be send
@@ -220,7 +220,9 @@ public class App extends Frame implements WindowListener, ActionListener {
 	//						    	Thread.sleep(150); // Waits 150ms for each packet to be sent before sending the next
 							    }
 							    // Result format is as such: <IV:16chars>[Part]00<encrypted-text>
-							    
+							    // Alternative, needs locale library to set locale and be consistent:
+								// part = (aesci.encryptMessage("[Part]" + String.format("%02d", j) + messageToSend.substring(i, endIndex) , 0) );
+								
 							    System.err.println("Chunk[" + j + "]: " + part + "\n"); // debug, prints each chunk on the console
 							    chatUDP.send(part); // sends the chunk
 							    j++; // Adds +1 to the chunk counter
