@@ -46,7 +46,7 @@ public class TCPChatServer { // class for the user "server" that accepts the soc
 		}
 	}
 	
-	public void receive(JTextArea textArea) { // method receive, local receives text messageFromRemote 
+	public void receive(JTextArea textArea, AESci aesci) { // method receive, local receives text messageFromRemote 
 		
 		new Thread(() -> { // Thread the receive text process
 			while (socket.isConnected()) { // while socket connection is established
@@ -58,12 +58,16 @@ public class TCPChatServer { // class for the user "server" that accepts the soc
 	                    closeEverything(); // close streams
 	                    break; // break from loop 
 	                }
+					messageFromRemote = aesci.decryptMessage(messageFromRemote); // decrypts  the message
 					textArea.append("remote: " + messageFromRemote + "\n"); // appear messageFromRemote to textArea and change line
 				}
 				catch (IOException e) { // in case of error
 					e.printStackTrace();
 					closeEverything(); // close streams
 					break; // break from loop 
+				} catch (Exception e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
 				}
 			}
 	    }).start(); // start Thread  	
