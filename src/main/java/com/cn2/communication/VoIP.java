@@ -12,7 +12,8 @@ public class VoIP { // class for VoIP
     private InetAddress remoteAddress; // define IP address remoteAddress, to set it as IP of remote 
     private DatagramSocket datagramSocket; // define DatagramSocket datagramSocket 
     private volatile boolean isCallActive = false; // VoIP call state
-
+    private byte[] sendAudioBuffer = new byte[1024]; // receiveAudioBuffer, size=1024 bytes, to capture byte stream from remote 
+    private byte[] receiveAudioBuffer = new byte[1024]; // receiveAudioBuffer, size=1024 bytes, to capture byte stream from remote 
     public VoIP(DatagramSocket datagramSocket, InetAddress remoteAddress) throws LineUnavailableException {
     // conctructor VoIP, initialize datagramSocket and remoteAddress  
         
@@ -31,7 +32,7 @@ public class VoIP { // class for VoIP
 
 			new Thread(() -> { // Thread the capture and send audio process
 				try {
-					byte[] sendAudioBuffer = new byte[1024]; // sendAudioBuffer, size=1024 bytes, to capture audio stream from microphone
+//					byte[] sendAudioBuffer = new byte[1024]; // sendAudioBuffer, size=1024 bytes, to capture audio stream from microphone
 					while (isCallActive) { // while VoIP call is happening
 						sendAudioBuffer = record.read(); // sendAudioBuffer captures audio and returns byte stream 
 						DatagramPacket datagramPacket = new DatagramPacket(sendAudioBuffer, sendAudioBuffer.length, remoteAddress, 1243); /* construct datagramPacket, 
@@ -47,7 +48,7 @@ public class VoIP { // class for VoIP
 
 			new Thread(() -> { // Thread the receive and play audio process
 				try {
-					byte[] receiveAudioBuffer = new byte[1024]; // receiveAudioBuffer, size=1024 bytes, to capture byte stream from remote 
+//					byte[] receiveAudioBuffer = new byte[1024]; // receiveAudioBuffer, size=1024 bytes, to capture byte stream from remote 
 					while (isCallActive) { // while VoIP call is happening
 						DatagramPacket datagramPacket = new DatagramPacket(receiveAudioBuffer, receiveAudioBuffer.length); /* construct datagramPacket,
 						receive packets of length of receiveAudioBuffer */  

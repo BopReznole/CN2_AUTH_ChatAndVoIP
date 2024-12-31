@@ -14,6 +14,7 @@ import javax.crypto.spec.PBEKeySpec;
 import java.security.NoSuchAlgorithmException;	//for generating key with password
 import java.security.SecureRandom;
 import java.security.spec.InvalidKeySpecException;	//for generating key with password
+import java.util.Arrays;
 import java.util.Base64;
 
 public class AESci {
@@ -33,9 +34,11 @@ public class AESci {
     
     // constructor
     public AESci() throws Exception {
-    	initFromPassword("VerySecurePassword");	//sets key
-    	IVgen(); //Generates IV string and assigns it to ivstr variable
-    	setIV(ivstr); //Assigns IV stored in ivstr to the real IV
+    	initFromPassword("VerySecurePassword");	// Sets key
+    	IV = new byte[12]; // Create a byte array of length 10
+    	Arrays.fill(IV, (byte) 1);
+//    	IVgen(); //Generates IV string and assigns it to ivstr variable
+//    	setIV(ivstr); //Assigns IV stored in ivstr to the real IV
     }
     
 
@@ -73,7 +76,7 @@ public class AESci {
   }
 
 
-    
+    // Encryps text
     public String encrypt(String message) throws Exception {
     	byte[] messageInBytes = message.getBytes(); // Encodes and assings string message to a byte array to be encrypted
 //        byte[] messageInBytes = message.getBytes(StandardCharsets.UTF_8); // This didn't work somehow
@@ -84,6 +87,7 @@ public class AESci {
         return encode(encryptedBytes); // Returns a base64 encoded string of the message
     }
 
+    // Decrypts text
     public String decrypt(String encryptedMessage) throws Exception {
         byte[] messageInBytes = decode(encryptedMessage); // Decodes and assings base64 string message to a byte array to be decrypted
         Cipher decryptionCipher = Cipher.getInstance("AES/GCM/NoPadding"); // Creates a new AES/GCM/NoPadding cipher object for decryption
@@ -124,76 +128,103 @@ public class AESci {
     }
     
     // Encrypts the message when we press the send button
-    public String encryptMessage(String plainMessage) throws Exception {
+    public String encryptMessage(String plainMessage, int i) throws Exception {
     	System.err.println("Plain message to be sent: " + plainMessage); // Debug, prints plainMessage on the console
-    	IVgen(); //generates new IV to add in the message before sending it (saved in ivstr)
+    	String encryptedMessage; // Generates the string where the encrypted message will be stored
 //    	exportIV(); // Debug, prints current (old) IV on the console
-    	String encryptedMessage = encrypt(ivstr + plainMessage); // Geneates encrypted message after prepending the new IV
-//    	setIV(ivstr); //sets the new IV which was previously generated //ONLY WORKS FOR SEPARATE DEVICES
-//    	exportIV(); // Debug, prints current (new) IV on the console
+    	
+    	if(i<1) { // Does not create new IV, uses the old (until all chunks are sent)
+    		encryptedMessage = encrypt(ivstr +plainMessage); // Generates encrypted message **without** prepending new IV
+    	}
+    	else { // i>=1 It **does** generate a new IV
+        	IVgen(); //generates new IV to add in the message before sending it (saved in ivstr)
+        	encryptedMessage = encrypt(ivstr + plainMessage); // Generates encrypted message after prepending the new IV
+        	setIV(ivstr); //sets the new IV which was previously generated //ONLY WORKS FOR SEPARATE DEVICES
+    	}
+    	
+//    	exportIV(); // Debug, prints current (new (or old, depending on the if actions)) IV on the console
     	System.err.println("Message encrypted and sent: " + encryptedMessage); // Debug, prints encryptedMessage on the console
     	return (encryptedMessage); // Returns encrypted message to the caller (to be sent)
     }
-    
+
     // Encrypts the message when we recieve one (it is called by the UDP/TCPchat recieve methods)
     public String decryptMessage(String encryptedMessage) throws Exception {
-    	
-    	
     	// This if checks if it's related to voice call or it is part of a big message
     	// We send some commands in plain text (some times prepended to encrypted text)
-    	// "[Voice-Call]" is for Voice-call related commands
-    	// "[Part]" is for messages that come in multiple chunks (useful with UDP)
-    	if( (!encryptedMessage.substring(0, 12).equals("[Voice-Call]")) && (!encryptedMessage.substring(0, 6).equals("[Part]")) )	{ 
+    	// "[Voice-Call]" is for Voice-call related commands and comes **un**encrypted
+    	// "[Part]" is for messages that come in multiple chunks (useful with UDP) and comes **en**crypted
+    	if( (!encryptedMessage.substring(0, 12).equals("[Voice-Call]")) )	{ // No need for out of bounds check, the IV is 16 (>12) chars already
 //        	exportIV(); // Debug, prints current (old) IV on the console
     		System.err.println("Message recieved: " + encryptedMessage); // Debug, prints (recieved) encrypted message on the console
 	 		
     		encryptedMessage = decrypt(encryptedMessage); // Decrypts encryptedMessage and assigns it to encryptedMessage
-	 		String IVnew = encryptedMessage.substring(0, 16);	// Assigns the first 16 chars of the message to IVnew
-	 															// (It should be the new IV which remote uses by now)
-//	 		setIV(IVnew);  //Sets the new IV from IVnew //ONLY WORKS FOR SEPARATE DEVICES
-	 		encryptedMessage = encryptedMessage.substring(16, encryptedMessage.length()); //Removes IV string from message
+    		String IVnew = encryptedMessage.substring(0, 16);	// Assigns the first 16 chars of the message to IVnew
+																// (It should be the new IV which remote uses by now)
+    		setIV(IVnew);  //Sets the new IV from IVnew //ONLY WORKS FOR SEPARATE DEVICES
+    		encryptedMessage = encryptedMessage.substring(16, encryptedMessage.length()); //Removes IV string from message
+    		
+    		// First we check if the "[Part]FINISHED" command was sent
+        	// If true, this means remote has finished sending messages in chunks and we are ready to return the assembled message
+    		if (encryptedMessage.length() > 13) { // At least 14 chars, out of bounds check needed
+	    		if(encryptedMessage.substring(0, 14).equals("[Part]FINISHED")) { 
+	    			return mesAssembler();
+	    		}
+	    		else if(encryptedMessage.substring(0, 6).equals("[Part]")){ // In case we recieve a chunk with over 14 chars
+	    			return chunkStorer(encryptedMessage);
+	    		}
+    		}
+    		// It checks if the chunks of a composite message are being recieved
+        	// They should start with "[Part]" tag, followed by their increment number with a single leading zero
+        	// The should be 100 max (though we could configure the system to hold more than that
+	    	else if(encryptedMessage.length() > 6)	{ // At least 14 chars, out of bounds check needed
+	    		if(encryptedMessage.substring(0, 6).equals("[Part]")){
+	    			return chunkStorer(encryptedMessage);
+	    		}
+	    	}
 	 		
 	 		System.err.println("Recieved message decrypted: " + encryptedMessage); // Debug, prints (recieved) decrypted message on the console
 	 		}
-    	// First we check if the "[Part]FINISHED" command was sent
-    	// If true, this means remote has finished sending messages in chunks and we are ready to return the assembled message
-    	else if(encryptedMessage.substring(0, 14).equals("[Part]FINISHED")) {	//should >= 12 chars! 
-    		StringBuilder finalMessage = new StringBuilder(); // We use StringBuiler class to append all parts to a single variable
-    		
-    		// It iterates through the whole buffer that contains the **decrypted** chunks
-    		for (int j = 0; j < bufferedMes.length; j++) {
-    			if (bufferedMes[j] == null) { // If it find a null object, it means all parts have been appended, the rest should be empty
-    				break;
-    			}
-    			// Debug, prints each (non-null) chunk from the buffer on the console
-    			System.err.println("Buffered Message Part " + j + " : \n" + bufferedMes[j]);
-    			
-    			finalMessage.append(bufferedMes[j]); // Appends each chunk to the variable
-    			bufferedMes[j] = null; // Gradually flushes the array per object to be used again in the future
-    		}
-    		String finalString = finalMessage.toString(); // Converts variable to string to be printed
-    		System.err.println("PART_FINISHED: \n" + finalString); // Debug, prints the composite message
-    		return finalString; // Returns the composite message to be printed on the chat
-    	}
-    	// It checks if the chunks of a composite message are being recieved
-    	// They should start with "[Part]" tag, followed by their increment number with a single leading zero
-    	// The should be 100 max (though we could configure the system to hold more than that
-    	else if(encryptedMessage.substring(0, 6).equals("[Part]")) {
-    		int i = Integer.parseInt(encryptedMessage.substring(6, 8));	// Extract the numbering of the part (Format: [Part]00)
-    																	// It should be the first 2 chars
-    		// Removes the "[Part]00" tag from the message and **decrypts** the message
-    		bufferedMes[i] = decrypt(encryptedMessage.substring(8, encryptedMessage.length()));
-    		
-    		String IVnew = bufferedMes[i].substring(0, 16); // Assigns the first 16 chars of the message to IVnew
-															// (It should be the new IV which remote uses by now)
-//	 		setIV(IVnew);  //Sets the new IV //ONLY WORKS FOR SEPARATE DEVICES
-    		bufferedMes[i] = bufferedMes[i].substring(16, bufferedMes[i].length()); //Removes IV string from message and saves it to buffer in plain text
-    		// Debug, prints message which is now stored in the buffer on the console
-    		System.err.println("Buffered Message Part " + i + " : \n" + bufferedMes[i]);
-    		return ("Recieving long message, wait..."); // We ask the user to wait as the system collects each chunk
-    	}
     	return encryptedMessage; // Ruturns the decrypted message (this is called only in the first if statement)
     }
+    
+    // This is called upon recieving the command "[Part]FINISHED" to assemble and return the composite message
+    public String mesAssembler() {
+		StringBuilder finalMessage = new StringBuilder(); // We use StringBuiler class to append all parts to a single variable
+		
+		// It iterates through the whole buffer that contains the **decrypted** chunks
+		for (int j = 0; j < bufferedMes.length; j++) {
+		if (bufferedMes[j] == null) { // If it find a null object, it means all parts have been appended, the rest should be empty
+		break;
+		}
+		// Debug, prints each (non-null) chunk from the buffer on the console
+		System.err.println("Buffered Message Part " + j + " : \n" + bufferedMes[j]);
+		
+		finalMessage.append(bufferedMes[j]); // Appends each chunk to the variable
+		bufferedMes[j] = null; // Gradually flushes the array per object to be used again in the future
+		}
+		String finalString = finalMessage.toString(); // Converts variable to string to be printed
+		System.err.println("PART_FINISHED: \n" + finalString); // Debug, prints the composite message
+		return finalString; // Returns the composite message to be printed on the chat
+    }
+    
+    // This is called upon recieving a chunk of a composite message and stores the message in the local buffer
+    public String chunkStorer(String encryptedMessage) throws Exception {
+    	int i = Integer.parseInt(encryptedMessage.substring(6, 8));	// Extract the numbering of the part (Format: [Part]00)
+																	// It should be the first 2 chars
+		// Removes the "[Part]00" tag from the message and **decrypts** the message
+//		bufferedMes[i] = decrypt(encryptedMessage.substring(8, encryptedMessage.length()));
+    	// It comes decrypted to this method
+    	bufferedMes[i] = encryptedMessage.substring(8, encryptedMessage.length());
+//NOPE		String IVnew = bufferedMes[i].substring(0, 16); // Assigns the first 16 chars of the message to IVnew
+		// (It should be the new IV which remote uses by now)
+		//setIV(IVnew);  //Sets the new IV //ONLY WORKS FOR SEPARATE DEVICES
+//NOPE		bufferedMes[i] = bufferedMes[i].substring(16, bufferedMes[i].length()); //Removes IV string from message and saves it to buffer in plain text
+		// Debug, prints message which is now stored in the buffer on the console
+		System.err.println("Buffered Message Part " + i + " : \n" + bufferedMes[i]);
+		return ("Recieving long message, wait..."); // We ask the user to wait as the system collects each chunk
+    }
+    
+    
     
     
 // Unecessary or test methods:
