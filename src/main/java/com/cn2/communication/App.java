@@ -43,7 +43,13 @@ public class App extends Frame implements WindowListener, ActionListener {
 	private VoIP voip; // define VoIP object for VoIP 
 	private boolean isCallActive = false; // VoIP call not happening
 
-	private boolean isTCPon = false;
+	// A note for tcp
+	// If you plan to use it:
+	// 1) uncomment the appropriate object
+	// 2) uncomment the appropriate constructor
+	// 3) uncomment the TCP receive()
+	// 4) comment the UDP SEND area
+	// 5) uncomment the TCP SEND area
 	
 //	private TCPChatClient chatTCP; // define TCPChat object for TCP Chat, if local is the "client"
 	private TCPChatServer chatTCP; // define TCPChat object for TCP Chat, if local is the "server"
@@ -60,9 +66,10 @@ public class App extends Frame implements WindowListener, ActionListener {
 		voip = new VoIP(new DatagramSocket(1243), remoteAddress); /* initialize voip,
 		pass DatagramSocket from port 1243 and remoteAddress to constructor VoIP */
 		
-//		chatTCP = new TCPChatClient(new Socket(remoteAddress, 2345)); /* initialize chatTCP,
-//		pass Socket from port 2345 and IP of remote to constructor TCPChatSender */ 
-//		chatTCP = new TCPChatServer(new ServerSocket(2345)); // initialize chatTCP, pass ServerSocket from port 2345 to constructor TCPChatReceiver 
+		// initialize chatTCP, pass Socket from port 2345 and IP of remote to constructor TCPChatSender 
+//		chatTCP = new TCPChatClient(new Socket(remoteAddress, 2345)); 
+		// initialize chatTCP, pass ServerSocket from port 2345 to constructor TCPChatReceiver 
+//		chatTCP = new TCPChatServer(new ServerSocket(2345));
 	}
 	catch (Exception e) { // in case of error
 		e.printStackTrace();
@@ -155,9 +162,8 @@ public class App extends Frame implements WindowListener, ActionListener {
 		app.chatUDP.receive(textArea, app.aesci);  // call method receive from chatUDP, receive text data
 		
 		// TCP isn't encrypted
-//		if (app.isTCPon) {
+		// Keep it commented if TCP isn't used
 //		app.chatTCP.receive(textArea); // call method receive from TCPChatSender or TCPChatRceiver, receive text data
-//		}
 	}
 	
 	/**
@@ -175,7 +181,7 @@ public class App extends Frame implements WindowListener, ActionListener {
 			
 			String messageToSend  = inputTextField.getText(); // get string messageToSend from TextField inputTextField 
 		// All of this if should be commented out if we plan to use TCP (TCP uses ~64Kb max buffer, we don't need chunks)
-			if (!isTCPon) { // Checks if it should be sent with UDP or TCP
+			//UDP SEND [START]
 				if (!messageToSend.isEmpty()) { // if there is a messageToSend 
 					try {
 						String plainMessage = messageToSend; //stores the message in plaintext temporarily
@@ -232,7 +238,7 @@ public class App extends Frame implements WindowListener, ActionListener {
 							Thread.sleep(700); // Waits 700ms for all the packets to be sent before sending the next command
 							
 							// Sends the command to the remote confirming that local finished sending chunks
-							// Forces the remote to combine the recieved chunks and print them on their screen
+							// Forces the remote to combine the received chunks and print them on their screen
 							chatUDP.send(aesci.encryptMessage("[Part]FINISHED", 1) ); 
 						}
 						else if (messageToSend.length() > 50000) {	// edge case where user sends >50k char message
@@ -246,30 +252,33 @@ public class App extends Frame implements WindowListener, ActionListener {
 						ex.printStackTrace();
 					}
 				}
-			}
-			else{
-				try {
-					String plainMessage = messageToSend;
-				// Checks needed for TCP, this whole if should be commented if we plan to use UDP
-//			 	// TCP can send ~64Kb packets easily, a lot bigger than what we normally need for this app
-					if (!messageToSend.isEmpty() || (messageToSend.length() > 50000) ) { // if there is a messageToSend 
-							chatTCP.send(messageToSend); // call method send from chatTCP, send text data
-					}
-					else {
-						textArea.append("Message to big. Please send 50000 chars max.\nYour message was not send.");
-					}
-				textArea.append("local: " + plainMessage  + newline); // appear plainMessage to textArea and change line
-				inputTextField.setText(""); // erase messageTosend from inputTextField					
-				}
-				catch (Exception ex) { // in case of error
-					ex.printStackTrace();
-				} 
-			}
+			//UDP SEND [END]
+			
+//			//TCP SEND [START]
+//				try {
+//					String plainMessage = messageToSend;
+//				// Checks needed for TCP, this whole if should be commented if we plan to use UDP
+//				// TCP can send ~64Kb packets easily, a lot bigger than what we normally need for this app
+//					if (!messageToSend.isEmpty() || (messageToSend.length() > 50000) ) { // if there is a messageToSend 
+//							chatTCP.send(messageToSend); // call method send from chatTCP, send text data
+//					}
+//					else {
+//						textArea.append("Message to big. Please send 50000 chars max.\nYour message was not send.");
+//					}
+//				textArea.append("local: " + plainMessage  + newline); // appear plainMessage to textArea and change line
+//				inputTextField.setText(""); // erase messageTosend from inputTextField					
+//				}
+//				catch (Exception ex) { // in case of error
+//					ex.printStackTrace();
+//				} 
+//			//TCP SEND [END]
+			
+			
 		}
 		
 		else if (e.getSource() == callButton){ // The "Call" button was clicked
 			
-			// the [Voice-Call] tag is recognised by the UDPChat.recieve method
+			// the [Voice-Call] tag is recognised by the UDPChat.receive method
 			String textAreaText = textArea.getText(); // get the text from textArea
 			if (!isCallActive) { // VoIP call happening 
 				if (textAreaText.contains("remote: [Voice-Call] Calling...Pick up!")) { // if remote starts call
@@ -302,7 +311,7 @@ public class App extends Frame implements WindowListener, ActionListener {
 			else { // VoIP call not happening
 				if (textAreaText.contains("remote: [Voice-Call] VoIP call ended.")) { // if remote ended call
 					String content = textArea.getText(); // get the text from textArea
-					content = content.replace("remote: [Voice-Call] VoIP call ended.", "VoIP call ended."); // replace the specific text
+					content = content.replace("remote: [Voice-Call] VoIP call ended.", "[Voice-Call] VoIP call ended."); // replace the specific text
 					textArea.setText(content);
 				} 
 				else { // if local ended call

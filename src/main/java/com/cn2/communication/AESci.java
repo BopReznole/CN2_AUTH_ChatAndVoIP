@@ -58,7 +58,7 @@ public class AESci {
     
     // Generates new and random IV (should be called after every encryption, it should be ephemeral)
     // The new IV should be supplied in the beginning of the sent encrypted message, *before* be put in use
-    // The reciever should decrypt the message with the old IV, extract the new IV from the message and use that for the next message
+    // The receiver should decrypt the message with the old IV, extract the new IV from the message and use that for the next message
     // The base64 IV we generate is 16 chars (should be the first 16 chars of a normal encrypted message)
     public void IVgen() {
     SecureRandom random = new SecureRandom();	// Creates the random seed
@@ -148,7 +148,7 @@ public class AESci {
     	return (encryptedMessage); // Returns encrypted message to the caller (to be sent)
     }
 
-    // Encrypts the message when we recieve one (it is called by the UDP/TCPchat recieve methods)
+    // Encrypts the message when we receive one (it is called by the UDP/TCPchat receive methods)
     public String decryptMessage(String encryptedMessage) throws Exception {
     	// This if checks if it's related to voice call or it is part of a big message
     	// We send some commands in plain text (some times prepended to encrypted text)
@@ -156,7 +156,7 @@ public class AESci {
     	// "[Part]" is for messages that come in multiple chunks (useful with UDP) and comes **en**crypted
     	if( (!encryptedMessage.substring(0, 12).equals("[Voice-Call]")) )	{ // No need for out of bounds check, the IV is 16 (>12) chars already
 //        	exportIV(); // Debug, prints current (old) IV on the console
-    		System.err.println("Message recieved: " + encryptedMessage); // Debug, prints (recieved) encrypted message on the console
+    		System.err.println("Message received: " + encryptedMessage); // Debug, prints (received) encrypted message on the console
 	 		
     		encryptedMessage = decrypt(encryptedMessage); // Decrypts encryptedMessage and assigns it to encryptedMessage
     		ivstr = encryptedMessage.substring(0, 16);	// Assigns the first 16 chars of the message to IVnew
@@ -170,11 +170,11 @@ public class AESci {
 	    		if(encryptedMessage.substring(0, 14).equals("[Part]FINISHED")) { 
 	    			return mesAssembler();
 	    		}
-	    		else if(encryptedMessage.substring(0, 6).equals("[Part]")){ // In case we recieve a chunk with over 14 chars
+	    		else if(encryptedMessage.substring(0, 6).equals("[Part]")){ // In case we receive a chunk with over 14 chars
 	    			return chunkStorer(encryptedMessage);
 	    		}
     		}
-    		// It checks if the chunks of a composite message are being recieved
+    		// It checks if the chunks of a composite message are being received
         	// They should start with "[Part]" tag, followed by their increment number with a single leading zero
         	// The should be 100 max (though we could configure the system to hold more than that
 	    	else if(encryptedMessage.length() > 6)	{ // At least 14 chars, out of bounds check needed
@@ -183,7 +183,7 @@ public class AESci {
 	    		}
 	    	}
 	 		
-	 		System.err.println("Recieved message decrypted: " + encryptedMessage); // Debug, prints (recieved) decrypted message on the console
+	 		System.err.println("Received message decrypted: " + encryptedMessage); // Debug, prints (received) decrypted message on the console
 	 		}
     	return encryptedMessage; // Ruturns the decrypted message (this is called only in the first if statement)
     }
