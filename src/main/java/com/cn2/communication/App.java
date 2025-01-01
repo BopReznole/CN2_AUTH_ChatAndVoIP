@@ -54,7 +54,7 @@ public class App extends Frame implements WindowListener, ActionListener {
 	{ // initialize network variables using non-static initialization block
 	
 	try {
-		remoteAddress = InetAddress.getByName("192.168.2.12"); // initialize remoteAddress, IP of remote
+		remoteAddress = InetAddress.getByName("192.168.208.134"); // initialize remoteAddress, IP of remote
 		chatUDP = new UDPChat(new DatagramSocket(1234), remoteAddress); /* initialize chatUDP,
 //		pass DatagramSocket from port 1234 and remoteAddress to constructor UDPChat */ 
 		voip = new VoIP(new DatagramSocket(1243), remoteAddress); /* initialize voip,
@@ -155,9 +155,9 @@ public class App extends Frame implements WindowListener, ActionListener {
 		app.chatUDP.receive(textArea, app.aesci);  // call method receive from chatUDP, receive text data
 		
 		// TCP isn't encrypted
-		if (app.isTCPon) {
-		app.chatTCP.receive(textArea); // call method receive from TCPChatSender or TCPChatRceiver, receive text data
-		}
+//		if (app.isTCPon) {
+//		app.chatTCP.receive(textArea); // call method receive from TCPChatSender or TCPChatRceiver, receive text data
+//		}
 	}
 	
 	/**

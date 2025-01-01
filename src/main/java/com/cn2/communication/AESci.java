@@ -23,7 +23,7 @@ public class AESci {
     private final int KEY_SIZE = 128;	// the size of the AES key
     private final int T_LEN = 128;		// the length of the tag used in the Galois/Counter Mode (GCM) of operation in the AES encryption algorithm
     									// In GCM, a tag is appended to the ciphertext during encryption, and it is used during decryption to verify the integrity of the ciphertext
-    private byte[] IV;					// Initialization Vector This is the IV (the real IV) our cipher uses, we will call it IV
+    private byte[] IV = new byte[12];	// Initialization Vector: This is the IV (the real IV) our cipher uses, we will call it IV
     									// it is essentially the ephemeral key that changes after every encryption
     private String salt = "potato";		// the salt used to generate the key from our password
     private String encodedIV = "";		// the base64 encoded string version of the IV
@@ -35,8 +35,9 @@ public class AESci {
     // constructor
     public AESci() throws Exception {
     	initFromPassword("VerySecurePassword");	// Sets key
-    	IV = new byte[12]; // Create a byte array of length 10
+//    	IV = new byte[12]; // Create a byte array of length 10
     	Arrays.fill(IV, (byte) 1);
+    	ivstr = encode(IV);
 //    	IVgen(); //Generates IV string and assigns it to ivstr variable
 //    	setIV(ivstr); //Assigns IV stored in ivstr to the real IV
     }
@@ -130,14 +131,14 @@ public class AESci {
     // Encrypts the message when we press the send button
     public String encryptMessage(String plainMessage, int i) throws Exception {
     	System.err.println("Plain message to be sent: " + plainMessage); // Debug, prints plainMessage on the console
-    	String encryptedMessage; // Generates the string where the encrypted message will be stored
+    	String encryptedMessage=""; // Generates the string where the encrypted message will be stored
 //    	exportIV(); // Debug, prints current (old) IV on the console
     	
-    	if(i<1) { // Does not create new IV, uses the old (until all chunks are sent)
+    	if(i==0) { // Does not create new IV, uses the old (until all chunks are sent)
     		encryptedMessage = encrypt(ivstr +plainMessage); // Generates encrypted message **without** prepending new IV
     	}
-    	else { // i>=1 It **does** generate a new IV
-        	IVgen(); //generates new IV to add in the message before sending it (saved in ivstr)
+    	else if(i==1) { // i>=1 It **does** generate a new IV
+    		IVgen(); //generates new IV to add in the message before sending it (saved in ivstr)
         	encryptedMessage = encrypt(ivstr + plainMessage); // Generates encrypted message after prepending the new IV
         	setIV(ivstr); //sets the new IV which was previously generated //ONLY WORKS FOR SEPARATE DEVICES
     	}
@@ -158,9 +159,9 @@ public class AESci {
     		System.err.println("Message recieved: " + encryptedMessage); // Debug, prints (recieved) encrypted message on the console
 	 		
     		encryptedMessage = decrypt(encryptedMessage); // Decrypts encryptedMessage and assigns it to encryptedMessage
-    		String IVnew = encryptedMessage.substring(0, 16);	// Assigns the first 16 chars of the message to IVnew
+    		ivstr = encryptedMessage.substring(0, 16);	// Assigns the first 16 chars of the message to IVnew
 																// (It should be the new IV which remote uses by now)
-    		setIV(IVnew);  //Sets the new IV from IVnew //ONLY WORKS FOR SEPARATE DEVICES
+    		setIV(ivstr);  //Sets the new IV from IVnew //ONLY WORKS FOR SEPARATE DEVICES
     		encryptedMessage = encryptedMessage.substring(16, encryptedMessage.length()); //Removes IV string from message
     		
     		// First we check if the "[Part]FINISHED" command was sent

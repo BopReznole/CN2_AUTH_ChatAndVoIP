@@ -25,7 +25,7 @@ public class UDPChat { // class for chat using UDP
 	 
 	 public void send(String messageToRemote) throws LineUnavailableException { // method send, local sends text messageToRemote
 		 	 try {
-		 		sendBuffer = messageToRemote.getBytes(); // convert messageToRemote to bytes and put to buffer
+		 		 sendBuffer = messageToRemote.getBytes(); // convert messageToRemote to bytes and put to buffer
 		 		 DatagramPacket datagramPacket = new DatagramPacket(sendBuffer, sendBuffer.length, remoteAddress, 1234); /* construct datagramPacket,  
 				 send packets of length of buffer, to IP inetAddress and port=1234 of remote */  
 		 		 datagramSocket.send(datagramPacket); // send datagramPacket
@@ -51,12 +51,11 @@ public class UDPChat { // class for chat using UDP
      	 	 		 datagramSocket.receive(datagramPacket); // datagramPacket received from datagramSocket, blocking method  
      	 	 		 String messageFromRemote = new String(datagramPacket.getData(), 0, datagramPacket.getLength()); 
      	 	 		 // creates string from datagramPacket byte array by remote, offset=0
-     	 	 		 
+     	 	 		
 //     	 	 		 aesci.exportKeys(); // debug, prints key and IV used to decrypt message
 //     	 	 		 System.err.println(datagramPacket.getLength()); // debug, prints byte length of datagramPacket on the console
      	 	 		 messageFromRemote = aesci.decryptMessage(messageFromRemote);
 //     	 	 		 aesci.exportKeys(); // debug, prints key and IV used after decrypting message
-     	 	 		 
      	 	 		 textArea.append("remote: " + messageFromRemote + "\n"); // appear messageFromRemote to textArea and change line
 	 	 	 	 }
 	     	 	 catch (IOException e) { // in case of error
