@@ -52,7 +52,6 @@ public class TCPChatClient { // class for the user "client" that sends the socke
 					
 					if (messageFromRemote == null) { // check for null, remote closed the app
 	                    textArea.append("remote: Disconnected." + "\n"); // inform local
-	                    closeEverything(); // close streams
 	                    break; // break from loop 
 	                }
 					textArea.append("remote: " + messageFromRemote + "\n"); // appear messageFromRemote to textArea and change line
